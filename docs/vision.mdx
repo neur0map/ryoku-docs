@@ -63,10 +63,12 @@ snapshots, and explicit operating boundaries. Ryoku is a workstation first.
 - **One shell stack.** A single Quickshell UI plus the `ryoku-shell` daemon
   decide together (the daemon owns state, the UI renders), instead of stitching
   a dozen widgets and tray apps.
-- **Signed packages and one update command.** `ryoku update` takes a snapper
-  pre-snapshot, brings the system current from the signed `[ryoku]` repo,
-  re-lays the base config with `ryoku materialize`, and reloads the shell.
-  Rollback is selectable from the Limine boot menu.
+- **Signed packages and one update command.** `ryoku update` brings the system
+  current from the signed `[ryoku]` repo, re-lays the base config with
+  `ryoku materialize`, and reloads the shell. On a btrfs root with snapper
+  configured (the standard install), each run is wrapped in a snapper
+  pre/post snapshot pair, and rollback is also selectable from the Limine
+  boot menu.
 - **A strict Ryoku command and config surface.** The `ryoku` CLI is the system
   front door; `~/.config/hypr` is where your config lives; Ryoku Settings
   (`Mod+,`) is the one place to change appearance, displays, input, keybinds,

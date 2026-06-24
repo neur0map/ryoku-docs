@@ -1,13 +1,14 @@
 ---
 title: Updates
-description: How Ryoku updates itself, takes snapshots before each run, and rolls back when something breaks.
+description: How Ryoku updates itself, wraps each run in a snapper snapshot when configured, and rolls back when something breaks.
 ---
 
-Ryoku updates through one command: `ryoku update`. It takes a snapper snapshot,
-brings the system current from the signed `[ryoku]` pacman repo, re-lays the
-base config with `ryoku materialize`, and reloads the shell. There is one
-channel (`main`); there is no channel switching, no git-pull update, and no
-ordered migration ledger.
+Ryoku updates through one command: `ryoku update`. When the system meets the
+snapshot prerequisites it takes a snapper pre-snapshot, then brings the system
+current from the signed `[ryoku]` repo, re-lays the base config with
+`ryoku materialize`, and reloads the shell. There is one channel (`main`);
+there is no channel switching, no git-pull update, and no ordered migration
+ledger.
 
 ## What `ryoku update` does
 
@@ -55,16 +56,37 @@ not meant for humans.
 
 ## Snapshots and rollback
 
-Every `ryoku update` is wrapped in a snapper pre/post snapshot pair. You can
-list them at any time:
+When the system meets the prerequisites, every `ryoku update` is wrapped in a
+snapper pre/post snapshot pair. The prerequisites are a btrfs root with a
+snapper `root` config that writes snapshots to the `@snapshots` subvolume at
+`/.snapshots`. The standard ISO install sets all of this up, so on a normal
+install the safety net is on from first boot.
+
+It is best-effort by design. On a non-btrfs root, or on a machine where the
+snapper `root` config is missing, `ryoku update` proceeds without a snapshot
+rather than refusing to update. `ryoku doctor` runs inside every update and,
+on a btrfs root with the `root` config missing, creates the config from the
+same template the installer uses, registers it in `/etc/conf.d/snapper`,
+fixes `/.snapshots` ownership, and enables the cleanup timer, so a drifted
+or partially installed machine self-heals on the next run. On a non-btrfs
+root, snapshots stay unavailable.
+
+To see what you have:
 
 ```bash
+ryoku status
 ryoku snapshots
 ```
 
+`ryoku status` prints the snapshot count; `ryoku snapshots` lists them, and
+fails clearly when snapper is not configured. If it prints `The config 'root'
+does not exist`, see [Troubleshoot](/docs/troubleshoot) for the exact
+recovery path.
+
 To roll back, pass an id; with no id, `ryoku rollback` lists them so you can
-pick one. The same snapshots are selectable from the Limine boot menu, so a
-truly broken system can be recovered from the bootloader.
+pick one. The same snapshots are selectable from the Limine boot menu when
+`limine-snapper-sync` is installed and snapshots exist, so a truly broken
+system can be recovered from the bootloader.
 
 ```bash
 ryoku rollback

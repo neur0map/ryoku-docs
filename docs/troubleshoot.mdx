@@ -103,6 +103,41 @@ not boot back into Hyprland can be recovered from the bootloader instead.
 If you cannot reach the desktop at all, drop to a TTY (`Ctrl+Alt+F2`), log
 in, and run `ryoku rollback` from there.
 
+## No snapshots, or `ryoku snapshots` says the config 'root' does not exist
+
+`ryoku snapshots` printing `The config 'root' does not exist. Likely snapper
+is not configured.`, an empty Limine snapshot menu, or `ryoku status`
+reporting zero snapshots after several updates all point to the same thing:
+the snapper `root` config is missing, so the safety net never ran. Snapshots
+require a btrfs root; the standard ISO install sets the config up
+automatically, but a machine that skipped the installer step, was upgraded
+from an older install, or drifted can end up without it.
+
+First, confirm the root is btrfs:
+
+```bash
+findmnt -no FSTYPE /
+```
+
+If that prints `btrfs`, run `ryoku doctor`. The snapper reconciler creates
+`/etc/snapper/configs/root` from the same template the installer uses,
+registers it in `/etc/conf.d/snapper`, fixes `/.snapshots` ownership, and
+enables the cleanup timer:
+
+```bash
+ryoku doctor
+ryoku snapshots
+ryoku status
+```
+
+The next `ryoku update` then writes a pre/post snapshot pair like any other
+run.
+
+If `findmnt` prints anything other than `btrfs`, the snapshot feature is
+unavailable on this machine and `ryoku update` will keep proceeding without
+snapshots. Rollback from inside Ryoku is not possible there; use your own
+backup or a reinstall instead.
+
 ## The last-resort recovery
 
 When the desktop is too broken to update normally (a corrupt local config, a
