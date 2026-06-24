@@ -1,0 +1,141 @@
+---
+title: Plugins
+description: How Ryoku extends itself. The shell ships its workflow surfaces directly; software is added through the Extras catalogue, which routes installs through the ryoku-pkg-* wrappers.
+---
+
+Ryoku stays opinionated by keeping its core small and putting growth in two
+well-defined places: the **shell** carries the daily workflow surfaces
+(capture, media, hardware, updates) directly, and **Extras** is the catalogue
+of optional apps and tools the Hub installs on demand. There is no separate
+plugin SDK; the contract is "use the shell or use the catalogue."
+
+## What ships in the shell
+
+The desktop shell (`ryoku-shell` daemon + Quickshell QML in
+`ryoku/shell/quickshell/`) integrates its workflow surfaces directly. They are
+not optional add-ons, they are how the desktop works:
+
+- **Frame** the rounded screen border and the popouts that melt into it.
+- **Pill** the morphing top bar and its island (fused island, floating pill,
+  or none, each optionally reveal-on-hover).
+- **Update island** reads `$XDG_RUNTIME_DIR/ryoku-update.json` and shows
+  `ryoku update` runs live in the pill.
+- **Sidebar** the slide-in panel for quick actions.
+- **Ryoshot** screenshot capture and annotation (`Mod+S`), with color picking
+  (`Mod+Shift+C`).
+- **Control deck** (`Mod+D`) the stash, tools, and utilities (lens, OCR, QR,
+  mirror, screenrecord, nightlight, caffeine), each driven by a `ryoku-cmd-*`
+  helper in `ryoku/hyprland/scripts/`.
+- **Wallpaper picker** (`Mod+C`) and **next wallpaper** (`Mod+W`), backed by
+  swww and a wallust palette regeneration on every change.
+- **Workspace switcher** (`Mod+Tab`), **app launcher** (`Mod+Space`),
+  **clipboard history** (`Mod+V`), **speech-to-text** (`` Mod+` ``),
+  **keybind reference** (`Mod+K`).
+- **Desktop widgets** clock and weather on the wallpaper, configured in
+  **Ryoku Settings > Desktop Widgets**.
+- **Audio visualiser** (`Mod+M`, `Mod+Shift+M`), driven by the shell daemon.
+- **Hardware helpers** GPU pinning, monitor management, microphone, LED, idle,
+  laptop firmware, each a `ryoku-<thing>` script under
+  `system/hardware/.../`, shipped to `/usr/bin` by `ryoku-desktop` and called
+  by name from Lua autostart or a keybind.
+
+These do not install; they are part of the desktop you already have.
+
+## Extras: how Ryoku installs optional software
+
+When you want to add real software (a browser other than chromium, a game
+launcher, a developer toolchain, an app that needs its own drivers), the
+**Extras** catalogue does it for you. The user-facing entry is
+**Ryoku Settings > Extras**; the actuator is `ryoku-extras-install`. Each
+entry is a **bundle**: a curated set of packages, small installer scripts,
+and shell plugins defined in the `ryoku-extras` catalogue
+(`github.com/neur0map/ryoku-extras`, under `bundles/`). `ryoku-hub` fetches
+and caches that catalogue; the helpers do the work.
+
+### What a bundle can contain
+
+A bundle is a list of items, each one of:
+
+- **`package`** an Arch package name. Routing is decided at install time: a
+  package that resolves with `pacman -Si` is an official-repo package and is
+  installed via `ryoku-pkg-add`; otherwise it is built from the AUR via
+  `ryoku-pkg-aur-add`. A bundle author only ever writes a package name.
+- **`script`** a small installer from the catalogue's `installers/`,
+  detected by a `command -v` check (`ryoku-cmd-present`).
+- **`plugin`** a shell plugin, handled by the shell's plugin path.
+
+A bundle that needs 32-bit libraries (Steam, the lib32 overlay) declares
+`"requires": ["multilib"]`, and the actuator runs `ryoku-pkg-multilib` first
+to enable the `[multilib]` pacman repo idempotently.
+
+### The helpers, by name
+
+These ship to `/usr/bin` with `ryoku-desktop`. The Hub drives them; nothing
+here runs at boot.
+
+| Helper                  | What it does                                                                  |
+| ----------------------- | ----------------------------------------------------------------------------- |
+| `ryoku-extras-install`  | The actuator. Reads a bundle from the cache and installs, removes, or reports its items. |
+| `ryoku-pkg-add`         | Install official-repo packages (`sudo pacman -S --needed --noconfirm`).       |
+| `ryoku-pkg-aur-add`     | Install AUR packages with the system AUR helper (yay; paru as a fallback).    |
+| `ryoku-pkg-multilib`    | Enable the `[multilib]` repo, for bundles that need 32-bit packages.          |
+| `ryoku-pkg-remove`      | Remove packages and their now-orphaned dependencies (`pacman -Rs`).           |
+| `ryoku-cmd-present`     | The shared presence check (`command -v`) used by detection.                   |
+
+### From a terminal
+
+The Hub is the normal entry point. If you want to drive it from a shell,
+`ryoku-extras-install` is the command:
+
+```bash
+# Show what is installed and what is missing, machine-readable.
+ryoku-extras-install status
+ryoku-extras-install status bundle gaming
+
+# Install everything in a bundle (the Hub runs this in a floating terminal so
+# sudo and the AUR helper have a TTY).
+ryoku-extras-install install bundle gaming
+
+# Install one item from a bundle.
+ryoku-extras-install install item gaming steam
+
+# Remove a bundle's package items.
+ryoku-extras-install remove bundle gaming
+```
+
+Set `RYOKU_EXTRAS_DRYRUN=1` to print the plan without changing anything.
+
+`ryoku-hub` owns the network and the cache: it writes the catalogue to its
+cache dir (queryable with `ryoku-hub extras cache`), and the helpers read
+from there. They never fetch on their own.
+
+### Per-bundle reports
+
+The actuator publishes a JSON report per bundle under
+`$XDG_RUNTIME_DIR/ryoku-extras/<id>.json`. The Hub watches the file so its
+Extras section updates live as a bundle installs or removes.
+
+### Boundaries
+
+- Package transactions go through pacman and the AUR helper. The
+  `ryoku-pkg-*` wrappers are thin and do not reimplement them.
+- Drivers and dependencies an app needs are part of the bundle, so adding a
+  tool does not mean hunting for the matching driver by hand.
+- Removal goes through `pacman -Rs`, which refuses to drop a package another
+  installed package still needs, so uninstalling an extras bundle never
+  breaks the rest of the system.
+
+## What about a custom plugin SDK?
+
+There is not one to document. The shell is the surface; Extras is the
+catalogue. If you want to add a workflow surface, the path is to write a
+Quickshell component under `ryoku/shell/quickshell/` and wire its state
+through `ryoku-shell` (see the internal contributor docs). If you want to
+add software, write a bundle in `ryoku-extras`.
+
+## See also
+
+- [Customize](/docs/customize) for what you can tune without writing code.
+- [Updates](/docs/updates) for how installed packages stay current.
+- [Keybindings](/docs/keybindings) for the binds that open the surfaces
+  above.

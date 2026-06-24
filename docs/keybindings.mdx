@@ -1,0 +1,95 @@
+---
+title: Keybindings
+description: Every shipped Ryoku keybinding, grouped by purpose.
+---
+
+`Mod` is `Super` (the Windows or Cmd key) on a normal Ryoku install. These are
+the binds shipped by `ryoku/hyprland/modules/binds.lua`. The live shortcut
+legend in Ryoku Settings (`Mod + K`) reads from the same source, so it stays
+in sync with what is actually loaded.
+
+To add your own binds or override a shipped one, edit
+`~/.config/hypr/user.lua` (loaded last, never touched by updates). See
+[Customize](/docs/customize).
+
+## Windows
+
+| Binding | Action |
+| --- | --- |
+| `Mod + Q` | Close the active window. |
+| `Mod + F` | Toggle fullscreen. |
+| `Mod + A` | Float at 1000 x 660, centred. Press again to tile back. |
+| `Mod + R` | Enter resize mode. Arrows or `hjkl` resize, `Esc` exits. |
+| `Mod + P` | Toggle mirror / extend displays (`ryoku-monitor toggle`). |
+
+## Focus, move, resize
+
+| Binding | Action |
+| --- | --- |
+| `Mod + Left / Right / Up / Down` | Focus the neighbour in that direction. |
+| `Mod + Shift + Left / Right / Up / Down` | Move the active window. |
+| `Mod + Ctrl + Left / Right / Up / Down` | Resize the active window (repeating). |
+| `Alt + Tab` | MRU window switcher. Tab or arrows cycle, Enter (or release) picks, Esc cancels. |
+| `Mod + Left-drag` | Move the window under the cursor. |
+| `Mod + Right-drag` | Resize the window under the cursor. |
+
+Focus is direction-only. `hjkl` is the resize-mode vocabulary, not a focus
+binding, and `Mod + H` belongs to the scratchpad (see Workspaces).
+
+## Apps
+
+| Binding | Action |
+| --- | --- |
+| `Mod + Return` | Terminal (`kitty`). |
+| `Mod + E` | Files (`nautilus`). |
+| `Mod + B` | Browser (`chromium`). |
+| `Mod + N` | Neovim (`kitty -e nvim`). |
+| `Mod + Alt + E` | Yazi (`kitty -e yazi`). |
+
+## Shell surfaces and tools
+
+| Binding | Action |
+| --- | --- |
+| `Mod + Space` | App launcher (`ryoku-shell launcher`). |
+| `Mod + V` | Clipboard history. |
+| `Mod + L` | Lock the session. |
+| `Mod + W` | Next wallpaper. |
+| `Mod + C` | Wallpaper picker. |
+| `Mod + D` | Control deck: stash, tools, utilities. |
+| `Mod + Tab` | Workspace switcher (drag windows between workspaces). |
+| `Mod + M` | Toggle the desktop audio visualiser. |
+| `Mod + Shift + M` | Raise the visualiser over windows. |
+| `Mod + Grave` | Voice / speech-to-text (tap to start, tap again to stop). |
+| `Mod + ,` | Ryoku Settings (the Hub). |
+| `Mod + K` | Keybind reference (the live shortcut legend in the Hub). |
+| `Mod + S` | Screenshot (`ryoshot`). |
+| `Mod + Shift + C` | Pick a color (`hyprpicker`). |
+
+## Workspaces
+
+| Binding | Action |
+| --- | --- |
+| `Mod + H` | Toggle the scratchpad (special workspace). |
+| `Mod + Shift + H` | Stash the active window in the scratchpad. |
+| `Mod + Scroll` | Previous / next workspace. |
+| `Mod + 1 .. 0` | Focus workspace N on the monitor under the cursor. |
+| `Mod + Alt + 1 .. 0` | Send the active window to workspace N (on that monitor). |
+
+`Mod + N` (a number key, not the letter) pulls the workspace to whichever
+monitor the cursor is on, so the same keys drive every screen instead of
+always yanking focus to the laptop panel.
+
+## Media
+
+| Binding | Action |
+| --- | --- |
+| `XF86AudioRaiseVolume` | Volume up (`wpctl`). |
+| `XF86AudioLowerVolume` | Volume down (`wpctl`). |
+| `XF86AudioMute` | Toggle mute (`wpctl`). |
+| `XF86AudioPlay` | Play / pause (`playerctl`). |
+| `XF86AudioNext` | Next track (`playerctl`). |
+| `XF86AudioPrev` | Previous track (`playerctl`). |
+
+Brightness keys are not shipped in `binds.lua`. Most laptops and external
+monitors handle brightness in firmware; if yours does not, add a personal
+bind in `~/.config/hypr/user.lua`.

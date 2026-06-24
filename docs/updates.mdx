@@ -1,0 +1,151 @@
+---
+title: Updates
+description: How Ryoku updates itself, takes snapshots before each run, and rolls back when something breaks.
+---
+
+Ryoku updates through one command: `ryoku update`. It takes a snapper snapshot,
+brings the system current from the signed `[ryoku]` pacman repo, re-lays the
+base config with `ryoku materialize`, and reloads the shell. There is one
+channel (`main`); there is no channel switching, no git-pull update, and no
+ordered migration ledger.
+
+## What `ryoku update` does
+
+On a packaged install the run is:
+
+1. Take a snapper pre-snapshot (best-effort, an unconfigured snapper never
+   blocks the update).
+2. `sudo pacman -Syu` to refresh and upgrade everything from the official Arch
+   repos and the `[ryoku]` repo.
+3. `yay -Sua` (when yay is present) to update any AUR packages.
+4. `ryoku materialize` to re-lay Ryoku's base config under `~/.config`,
+   override-safe.
+5. Reload the shell.
+6. Take a snapper post-snapshot.
+
+Throughout, progress is published to `$XDG_RUNTIME_DIR/ryoku-update.json`, which
+the shell's update island reads to show the run in the pill.
+
+```bash
+ryoku update
+```
+
+`ryoku update` also calls `ryoku doctor` itself, so stateful drift gets
+reconciled as part of the same run.
+
+<Callout type="info">
+On a maintainer's dev checkout the same command fetches the channel branch,
+fast-forwards, and redeploys with `ryoku/shell/deploy.sh`. The auto-detection
+is automatic; you do not pick a mode.
+</Callout>
+
+## Status
+
+`ryoku status` is read-only. It prints the active config base, the installed
+`ryoku-desktop` version, what the `[ryoku]` repo offers, the count of pending
+package updates (via `checkupdates` from `pacman-contrib`), and the snapshot
+count.
+
+```bash
+ryoku status
+```
+
+The `--json` form is the data seam the Hub and the update island read; it is
+not meant for humans.
+
+## Snapshots and rollback
+
+Every `ryoku update` is wrapped in a snapper pre/post snapshot pair. You can
+list them at any time:
+
+```bash
+ryoku snapshots
+```
+
+To roll back, pass an id; with no id, `ryoku rollback` lists them so you can
+pick one. The same snapshots are selectable from the Limine boot menu, so a
+truly broken system can be recovered from the bootloader.
+
+```bash
+ryoku rollback
+ryoku rollback 42
+```
+
+This hands off to `sudo snapper rollback`.
+
+## Self-healing: `ryoku doctor`
+
+`ryoku doctor` runs idempotent reconcilers for the stateful drift that
+packages and config cannot express. A healthy machine is quiet. It runs inside
+`ryoku update`; you usually do not call it by hand.
+
+Useful flags:
+
+- `ryoku doctor --check` (or `-n`) shows findings without changing anything.
+- `ryoku doctor --report [file]` writes a shareable text report bundled with
+  system state (btrfs, swap, failed units, recent journal errors, pacman
+  state, the ryoku channel state, display and backlight). It contains no
+  passwords or keys.
+- `ryoku doctor --explain` sends that same report to a cloud model and prints
+  its root-cause analysis and fix steps. Opt-in, advisory, read-only. It uses
+  your own key: nothing is sent unless you set one (`RYOKU_AI_KEY`,
+  `RYOKU_AI_URL`, `RYOKU_AI_MODEL`, or write the key to
+  `~/.config/ryoku/ai-key`). Defaults target Groq; any OpenAI-compatible
+  endpoint works.
+
+```bash
+ryoku doctor --check
+ryoku doctor --report
+ryoku doctor --explain
+```
+
+The latest report is kept at `~/.local/state/ryoku/doctor-report.txt`.
+
+## Recovery
+
+When the desktop is too broken to update normally (a half-applied upgrade, a
+corrupt config, a broken local build), `ryoku recovery` is the last resort. It
+resets to `main` and redeploys, overwriting configs. It hands off to
+`bin/ryoku-recovery`, preferring a local copy and otherwise fetching the
+canonical script over the network, so it still works when the local install is
+broken.
+
+```bash
+ryoku recovery
+```
+
+If even the graphical session is gone, drop to a TTY (`Ctrl+Alt+F2`), log in,
+and run `ryoku rollback` or `ryoku recovery` from there. The Limine boot menu
+offers the same snapper snapshots if the disk itself still boots.
+
+## Where the packages come from
+
+The desktop ships as signed pacman packages from the `[ryoku]` repo
+(`release/packages/`). `ryoku-desktop` is the umbrella package and depends on
+`ryoku-shell`, `ryoku-hub`, `ryoku`, `ryoku-blobs`, and `ryoku-keyring`. The
+installer adds the `[ryoku]` repo, imports the release key from
+`ryoku-keyring`, and installs `ryoku-desktop`; from then on, `ryoku update`
+keeps the machine current.
+
+`ryoku update` upgrades installed packages. It does not pacstrap newly listed
+ones, so a newly added base package reaches only fresh installs.
+
+## State the CLI keeps
+
+Under `~/.local/state/ryoku/`:
+
+- `repo` the checkout root the last deploy recorded (dev machines only).
+- `deployed` the commit the last deploy laid down (dev machines only).
+- `materialized` the manifest of Ryoku-owned files, so the next `materialize`
+  can prune cleanly.
+- `doctor-report.txt` the latest diagnostic report.
+
+Runtime: `$XDG_RUNTIME_DIR/ryoku-update.json` is the update island's progress
+file, written by `update`.
+
+## See also
+
+- [Keybindings](/docs/keybindings) for the shortcuts that drive the update
+  island and Ryoku Settings.
+- [Troubleshoot](/docs/troubleshoot) when an update goes sideways.
+- [Customize](/docs/customize) for the override files updates leave alone.

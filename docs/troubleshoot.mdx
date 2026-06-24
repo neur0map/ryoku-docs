@@ -1,0 +1,214 @@
+---
+title: Troubleshoot
+description: Where logs live, how to self-heal with ryoku doctor, how to recover from a bad update, and how to file a useful bug.
+---
+
+When something goes wrong, work in this order: read the logs, run
+`ryoku doctor`, roll back a bad update with `ryoku rollback`, and only then
+file a bug. The same `ryoku` CLI that updates the machine also surfaces every
+diagnostic you need.
+
+## Where logs live
+
+| What                            | Where                                            |
+| ------------------------------- | ------------------------------------------------ |
+| Ryoku shell (pill, sidebar, panels) | `~/.local/state/ryoku-shell.log` (written when `ryoku` (re)starts the daemon) |
+| Hyprland (the compositor)       | `hyprctl monitors`, `hyprctl clients`, `dmesg`   |
+| SDDM (the login screen)         | `sudo journalctl -u sddm`                        |
+| Kernel and hardware             | `dmesg`, `journalctl -k`                         |
+| Update progress (the run)       | `$XDG_RUNTIME_DIR/ryoku-update.json`             |
+| Doctor report (most recent)     | `~/.local/state/ryoku/doctor-report.txt`         |
+
+For shell issues, restart the shell to refresh its log, then read it:
+
+```bash
+ryoku reload
+tail -n 50 ~/.local/state/ryoku-shell.log
+hyprctl binds
+```
+
+## Self-heal first: `ryoku doctor`
+
+`ryoku doctor` runs idempotent reconcilers for the stateful drift the package
+and config layers cannot express. Each reconciler reports `ok` when the
+machine matches the desired state, otherwise it converges, proposes the exact
+fix, or flags it for a human. A healthy machine is quiet.
+
+```bash
+ryoku doctor --check
+```
+
+`--check` (or `-n`) shows the full list without changing anything. Run it
+first to see what doctor would do.
+
+To collect a report for a maintainer or for yourself, bundle the findings
+with system state (btrfs, swap, failed units, recent journal errors, pacman
+state, the ryoku channel state, display and backlight):
+
+```bash
+ryoku doctor --report
+```
+
+The report is written to `~/.local/state/ryoku/doctor-report.txt`; it
+contains no passwords or keys.
+
+When you want it to reason rather than match rules, `ryoku doctor --explain`
+sends that same report to a cloud model and prints its root-cause analysis
+and fix steps. It is opt-in, advisory, and read-only: it never runs anything,
+so a wrong answer can only mislead. You configure your own key:
+
+```bash
+# Any OpenAI-compatible endpoint; Groq is the default.
+export RYOKU_AI_KEY=sk-...
+ryoku doctor --explain
+```
+
+You can also write the key to `~/.config/ryoku/ai-key` and override
+`RYOKU_AI_URL` and `RYOKU_AI_MODEL` to point at OpenRouter or any other
+provider.
+
+The current reconcilers cover swap kept out of snapshots, snapper config
+consistency, the stale pacman lock, the ryoku package channel and keyring,
+desktop session components, Hyprland config integrity (it revalidates and
+repairs the generated `monitors.lua` and `gpu.lua` drop-ins so a corrupt one
+cannot strand the desktop in emergency mode), the shell daemon, failed
+services, btrfs device health, display backlight, pending `.pacnew` files,
+and orphaned packages.
+
+## A read-only state check
+
+`ryoku status` answers "is this machine current and healthy?" without
+touching anything. It reports the active config base, the installed
+`ryoku-desktop` version, what the `[ryoku]` repo offers, the count of pending
+updates, and the snapshot count.
+
+```bash
+ryoku status
+```
+
+## Recover a bad update: `ryoku rollback`
+
+Every `ryoku update` is wrapped in a snapper pre/post snapshot pair. If an
+update breaks the system, roll back:
+
+```bash
+ryoku snapshots
+ryoku rollback 42
+```
+
+With no id, `ryoku rollback` lists snapshots so you can pick one. The same
+snapshots are selectable from the Limine boot menu, so a system that will
+not boot back into Hyprland can be recovered from the bootloader instead.
+
+If you cannot reach the desktop at all, drop to a TTY (`Ctrl+Alt+F2`), log
+in, and run `ryoku rollback` from there.
+
+## The last-resort recovery
+
+When the desktop is too broken to update normally (a corrupt local config, a
+broken local build), `ryoku recovery` resets to `main` and redeploys,
+overwriting configs. It hands off to `bin/ryoku-recovery`, preferring a local
+copy and otherwise fetching the canonical script over the network, so it
+still works when the local install is broken.
+
+```bash
+ryoku recovery
+```
+
+## The shell or pill is not drawing
+
+If the pill, sidebar, or other shell surfaces are missing:
+
+```bash
+ryoku reload
+tail -n 100 ~/.local/state/ryoku-shell.log
+```
+
+The common causes:
+
+- A recent `ryoku update` left the shell out of sync. Run `ryoku update`
+  again; if that fails, `ryoku rollback` to the pre-update snapshot.
+- A hand-edited `~/.config/hypr/user.lua` or `~/.config/hypr/monitors_user.lua`
+  has a Lua error. `pcall` keeps the rest of the config alive, but you will
+  see the failure in `~/.local/state/ryoku-shell.log` and in
+  `hyprctl monitors`. Comment out the line and `ryoku reload`.
+- `monitors.lua` or `gpu.lua` got corrupted on a hotplug or GPU reset.
+  `ryoku doctor` repairs both; if you can reach a TTY, run it there and
+  log back in.
+
+## The login screen is broken
+
+If SDDM does not start or refuses logins, drop to a TTY (`Ctrl+Alt+F2`), log
+in, and start Hyprland directly:
+
+```bash
+Hyprland
+```
+
+If Hyprland starts fine from the TTY, SDDM is the problem; read its log:
+
+```bash
+sudo journalctl -u sddm -n 200
+```
+
+Switch the SDDM theme from **Ryoku Settings > Lockscreen and Login** if you
+can reach a desktop, or edit `/etc/sddm.conf.d/` directly.
+
+## The wrong GPU is being used
+
+`Ryoku Settings > Displays > GPU` lists every detected GPU and pins the
+primary render device through `ryoku-gpu`. On a laptop the integrated GPU is
+the battery-friendly default; pick the discrete or external GPU there to
+render the desktop on it. The pin is read at login, so log out and back in
+to apply it.
+
+From a terminal:
+
+```bash
+ryoku-gpu detect
+```
+
+prints what was detected and what was recommended.
+
+## Only one resolution, or a display change will not apply
+
+Laptop (eDP) panels expose only their native resolution; use the scale
+options instead. They are labelled with the logical resolution they produce
+(for example 2048x1280) and are the Wayland way to get a smaller desktop. If
+`Apply` toasts a rejection, the compositor refused that mode or scale; pick
+one of the offered clean-divisor scales.
+
+## Performance feels off
+
+- Animations: **Ryoku Settings > Appearance > Animations** toggles them.
+- Wallpaper backend: turning off animated or video wallpapers is the single
+  biggest GPU win.
+- Blur and shadows: **Ryoku Settings > Appearance > Decoration** tones them
+  down for integrated graphics.
+
+## Filing a useful bug
+
+Open an issue at
+[github.com/neur0map/ryoku-arch/issues](https://github.com/neur0map/ryoku-arch/issues)
+with:
+
+1. What you did: keystrokes, clicks, or commands.
+2. What happened: what you saw, including screenshots when relevant.
+3. What you expected.
+4. The output of `ryoku status` and a fresh `ryoku doctor --report`. Attach
+   `~/.local/state/ryoku/doctor-report.txt` directly; it has no secrets in
+   it.
+5. The relevant log slice. The last 50 lines of
+   `~/.local/state/ryoku-shell.log` (after a `ryoku reload`) is usually
+   enough for shell issues.
+
+Security-sensitive issues follow the project's `SECURITY.md`, not the public
+tracker.
+
+## See also
+
+- [Updates](/docs/updates) for the snapshot model and rollback details.
+- [Customize](/docs/customize) for the override files that update-safely
+  survive every run.
+- [Keybindings](/docs/keybindings) for the shortcuts that open Settings,
+  reload the shell, and pick a wallpaper.

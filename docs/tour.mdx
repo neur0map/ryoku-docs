@@ -1,0 +1,82 @@
+---
+title: Desktop tour
+description: The Ryoku shell surfaces, how Hyprland workspaces work, and where the desktop's files live.
+---
+
+Ryoku's desktop is Hyprland + the Ryoku shell. Hyprland composites, handles
+input, and lays out windows; the Ryoku shell (a Quickshell QML frontend driven
+by the `ryoku-shell` Go daemon) paints everything else: the frame, the pill,
+the sidebar, the screenshot tool, and the desktop widgets.
+
+## Shell surfaces
+
+- **Frame.** The rounded screen border and the popouts that melt into it.
+  Always present; it is the desktop's chrome.
+- **Pill.** The morphing top bar at the centre of the screen, and its
+  popouts. The pill has three styles set in Ryoku Settings: the fused island,
+  a floating pill, or none, each optionally reveal-on-hover. The frame stays
+  the same in all three. Notifications, the update progress island, and the
+  GNOME keyring prompt all grow from the pill.
+- **Sidebar.** A slide-in panel for richer surfaces.
+- **Ryoshot.** Screenshot capture and annotation. `Mod + S` opens it.
+- **Desktop widgets.** The clock and weather painted on the wallpaper.
+  Configured from **Ryoku Settings > Desktop Widgets**.
+
+The Go daemon (`ryoku-shell`, in `ryoku/shell/ipc/`) decides what is on
+screen and the QML frontend renders it. Theme tokens flow from the wallpaper
+through `wallust`, so picking a new wallpaper repaints the desktop without
+restarting anything.
+
+## Hyprland workspaces
+
+There are ten workspaces per monitor. The defaults shipped in
+`ryoku/hyprland/modules/binds.lua`:
+
+- `Mod + 1 .. 0` focuses workspace N on the monitor under the cursor. The
+  workspace is pulled to the focused monitor first, so the same keys drive
+  whichever screen the mouse is on instead of always yanking focus to the
+  laptop.
+- `Mod + Alt + 1 .. 0` sends the active window to workspace N on that screen.
+- `Mod + Scroll` cycles through workspaces.
+- `Mod + Tab` opens the workspace switcher; drag windows between workspaces
+  with the mouse.
+- `Mod + H` toggles the scratchpad (a special workspace).
+  `Mod + Shift + H` stashes the active window into it.
+
+See [Keybindings](/docs/keybindings) for the full focus, move, resize, and
+window-management list, plus the media keys.
+
+## Where things live
+
+| Thing | Path |
+| --- | --- |
+| Hyprland entry point | `~/.config/hypr/hyprland.lua` |
+| Personal Hyprland overrides (loaded last, yours always win) | `~/.config/hypr/user.lua` |
+| Manual monitor pinning | `~/.config/hypr/monitors_user.lua` (see the shipped `monitors_user.lua.example`) |
+| Generated seeds (written once on first run, never clobbered) | `~/.config/hypr/monitors.lua`, `~/.config/hypr/gpu.lua` |
+| What Ryoku Settings writes | `~/.config/hypr/settings.lua` and the shell config |
+| Wallpapers | `~/Pictures/Wallpapers` |
+| Per-app native overrides (left alone by updates) | `~/.config/kitty/user.conf`, `~/.config/fish/user.fish`, etc. |
+
+The Hyprland load order from `hyprland.lua` is: base modules, then the
+active `theme`, then `settings` (what the Hub writes), then `user` (your
+overrides, which win). [Customize](/docs/customize) covers what to put in
+each layer.
+
+## Logs
+
+```bash
+# The shell daemon log (refresh it with: ryoku reload)
+tail -f ~/.local/state/ryoku-shell.log
+
+# Hyprland compositor state
+hyprctl monitors
+hyprctl binds
+```
+
+## Next steps
+
+- [Keybindings](/docs/keybindings): the full shipped reference.
+- [Customize](/docs/customize): wallpapers, themes, `user.lua` overrides,
+  and the Ryoku Settings panels.
+- [Plugins](/docs/plugins): the Extras catalogue and built-in shell workflows.

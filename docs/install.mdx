@@ -1,0 +1,117 @@
+---
+title: Install Ryoku
+description: Build or boot a signed Ryoku ISO, run the guided installer, and reboot into Hyprland.
+---
+
+Ryoku ships as a signed Arch live ISO. Boot it, answer a short series of
+prompts in a terminal installer, and the backend lays the base system, the
+Ryoku desktop package set, and a Limine boot menu onto the disk. There is no
+archinstall in the loop, no GUI configurator, no hidden JSON: just plain bash
+running the stages in order, so you can read the whole thing top to bottom and
+follow exactly what happens to the disk.
+
+## 1. Get an ISO
+
+Public ISO availability is tracked on [ryoku.dev](https://ryoku.dev). You can
+also build the image yourself from the monorepo; see
+[ISO build recipe](/docs/iso-build-recipe) for the full procedure and the
+hardware notes.
+
+A USB stick of at least 8 GB is fine. Flash the ISO with `dd`, balenaEtcher,
+or Ventoy.
+
+## 2. Verify the signature
+
+Every release is signed by `Ryoku Releases <releases@ryoku.dev>`. Always check
+the imported key's fingerprint matches before trusting it. The canonical
+public key lives in the repo at
+[`keys/ryoku-release-key.pub.asc`](https://github.com/neur0map/ryoku-arch/blob/main/keys/ryoku-release-key.pub.asc),
+bound to git history.
+
+```bash
+# Import the release key
+curl -sSL https://raw.githubusercontent.com/neur0map/ryoku-arch/main/keys/ryoku-release-key.pub.asc \
+  | gpg --import
+
+# Show the fingerprint and compare it against the one in the repo
+gpg --fingerprint releases@ryoku.dev
+
+# Verify the ISO against its detached signature
+gpg --verify ryoku-<date>-x86_64.iso.sig ryoku-<date>-x86_64.iso
+```
+
+[Release pipeline](/docs/release-pipeline) has the full walkthrough of what
+good output looks like and the offline-keyring path.
+
+## 3. Try in a VM first (optional)
+
+Ryoku targets modern desktops and laptops. If you want to walk through the
+installer before committing to bare metal, boot the ISO in QEMU/KVM,
+VirtualBox, or VMware with at least 16 GB RAM and a 60 GB virtual disk. For
+first-class daily use on real hardware, target 32 GB RAM and 80 GB free disk.
+
+## 4. Boot the installer
+
+The ISO is a stock Arch live image with one job: boot the machine and drop
+you straight into the Ryoku installer.
+
+<Steps>
+  <Step title="Auto-login to the installer session">
+    The kernel and archiso initramfs come up, `agetty` logs in as root on
+    `tty1`, and the login shell starts a tiny Wayland kiosk (`cage`) running
+    a terminal (`foot`) that runs `ryoku-tui`. The serial console and the
+    other VTs stay plain root shells for headless or recovery use.
+  </Step>
+  <Step title="Answer the prompts">
+    `ryoku-tui` walks you through keyboard, locale, time zone, network,
+    hardware profile, disk strategy, user, and (optional) LUKS encryption.
+    Nothing is written to disk until you confirm on the review screen.
+  </Step>
+  <Step title="Hand off to the backend">
+    On confirm, the TUI exports your choices as `RYOKU_*` environment
+    variables and runs `ryoku-install`. The same variables can be set by hand
+    on the serial console for a headless install; `RYOKU_DRYRUN=1` runs every
+    stage without touching the disk.
+  </Step>
+</Steps>
+
+## 5. What the backend does
+
+`ryoku-install` runs the stages below, each in its own file under
+`installation/backend/lib/`. It streams its log to stdout and emits
+`@@RYOKU_STEP <id>` sentinels so the TUI can draw staged progress; on success
+it prints `@@RYOKU_DONE` and exits 0.
+
+| Stage | What it does |
+| --- | --- |
+| `preflight` | Validate the `RYOKU_*` answers, require UEFI, require root, sanity-check the target disk. |
+| `disk` | Partition the target per `RYOKU_DISK_STRATEGY` (`whole` to wipe, `alongside` to dual-boot), create the ESP and root partitions. |
+| `luks` | Format and open the root partition as LUKS2, only when `RYOKU_ENCRYPT=1`. |
+| `filesystem` | Make the filesystems and create the Btrfs subvolumes (`@`, `@home`, `@snapshots`, optional `@backups`), then mount them. |
+| `pacstrap` | Install the base system, microcode, and GPU drivers from `system/packages/base.packages` plus the matching section of `system/packages/hardware.packages`. |
+| `chroot` | Locale, time zone, hostname, console keymap, `mkinitcpio`, the primary user (login shell fish, in `wheel`), NetworkManager. |
+| `deploy` | Add the signed `[ryoku]` pacman repository to the target, copy the live mirrorlist, import the keyring (`pacman-key --populate ryoku`), `pacman -S` the desktop set (`ryoku-keyring ryoku-shell ryoku-hub ryoku-blobs ryoku ryoku-desktop`), then run `ryoku materialize` as the user to lay `~/.config` from `/usr/share/ryoku/config`. |
+| `drivers` | Wire up the GPU profile (`amd-nvidia`, `amd`, `intel`, or `vm`) and any per-profile services. |
+| `bootloader` | Install Limine, write `limine.conf` from `system/boot/limine/`, and apply the Plymouth splash from `system/boot/plymouth/ryoku/`. |
+| `network` | Enable `NetworkManager` and `sddm`. |
+| `aur` | Build and install the AUR set from `system/packages/aur.packages`. |
+| `snapshots` | Configure snapper, `snap-pac`, and `limine-snapper-sync` so updates take pre / post snapshots and Limine exposes them in the boot menu. |
+
+The `ryoku-gpu` and `ryoku-monitor` helpers seed `~/.config/hypr/gpu.lua` and
+`~/.config/hypr/monitors.lua` on first login from the Hyprland autostart, so
+the installer does not run them.
+
+## 6. Reboot
+
+When the backend finishes, reboot and remove the USB. SDDM appears; pick the
+**Ryoku** session and log in.
+
+Continue with [First boot](/docs/first-boot) for what to expect on the desktop
+and the first few keys worth pressing.
+
+## Hardware notes
+
+The shipped GPU profiles are `amd-nvidia` (hybrid laptop with NVIDIA + AMD),
+`amd`, `intel`, and `vm`. Secure Boot is not configured automatically; the
+[ISO build recipe](/docs/iso-build-recipe) tracks the working hardware list
+and the harmless chroot warnings you can ignore.

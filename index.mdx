@@ -1,0 +1,44 @@
+---
+title: Ryoku
+description: A premium Arch workstation for powerful desktops and laptops. Hyprland compositor, Quickshell UI, signed package path.
+---
+
+**力と美のために** : *for the sake of power and beauty.*
+
+Ryoku is a premium Arch workstation for capable desktops and laptops. It is pre-riced, plugin-minded, and tuned for people who want a fast, polished daily machine from first boot.
+
+The desktop is [Hyprland](https://hypr.land/), with a [Quickshell](https://quickshell.outfoxxed.me)-based top bar, sidebars, lock screen, launcher, and control center. Workflow surfaces (capture, updates, hardware, media, and developer tools) are built into the shell instead of bolted on as tray-only scripts.
+
+{/* Add a current desktop screenshot at /assets/showcase.png and reference it here once captured. */}
+
+## Start here
+
+<CardGroup cols={2}>
+  <Card title="Install Ryoku" icon="download" href="/docs/install">
+    Build or boot the signed ISO, verify it, and install onto your hardware.
+  </Card>
+  <Card title="First boot" icon="power" href="/docs/first-boot">
+    What you see after login, and where to click first.
+  </Card>
+  <Card title="Desktop tour" icon="compass" href="/docs/tour">
+    Hyprland workspaces, the top bar, launcher, side panels, and control center.
+  </Card>
+  <Card title="Keybindings" icon="keyboard" href="/docs/keybindings">
+    Every shipped binding and what to do with it.
+  </Card>
+</CardGroup>
+
+## What ships
+
+- **Desktop**: a Hyprland session with a Quickshell top bar, sidebar, lock screen, launcher, and the Ryoku Settings control center.
+- **The `ryoku` command**: one tool for updates, rollback, status, and self-healing, backed by signed packages and Btrfs snapshots.
+- **Theming**: wallpaper-driven colors via wallust, plus switchable full-system themes (Greek Noir default, Catppuccin, Tokyo Night, Gruvbox, Nord, Rose Pine, and more).
+- **Daily-driver fit**: development, content work, media, notes, terminals, and container workflows on strong hardware.
+
+## How it is delivered
+
+Ryoku ships as signed pacman packages from the `[ryoku]` repository. The installer adds that repo, installs `ryoku-desktop`, and lays your configuration down with `ryoku materialize`. Updates and config always flow from the repo to your system, never the other way around.
+
+## Status
+
+Public preview. ISOs are built and signed through the release pipeline; see the [Ryoku website](https://ryoku.dev/) for current availability. The shell is moving from its Omarchy inheritance toward a Ryoku-owned plugin shell, while installer, command, and runtime behavior stay coherent.

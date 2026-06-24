@@ -1,0 +1,5 @@
+node_modules/
+.mint/
+.mintlify/
+*.log
+.DS_Store

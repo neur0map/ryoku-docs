@@ -1,0 +1,177 @@
+---
+title: ISO Build Recipe
+description: How the Ryoku live ISO is assembled from installation/iso/build.sh: prebuilt installer, baked repo payload, mkarchiso.
+---
+
+The Ryoku live ISO is a standard archiso image with one job: boot a machine
+and drop you straight into the Ryoku installer. The whole build is
+`installation/iso/build.sh`: stage the archiso profile, build the Go
+installer, bake the repo payload and the prebuilt binaries into `airootfs`,
+then hand the staged tree to `mkarchiso`.
+
+This page describes the local recipe. The same script runs in CI
+([/docs/release-pipeline](/docs/release-pipeline)) inside an Arch container.
+
+## What the ISO ships
+
+The committed profile under `installation/iso/` only holds the live
+environment definition. The installer and the repo payload are baked in by
+`build.sh` at build time, so no binaries live in the source tree.
+
+- `profiledef.sh` declares the archiso shape: `iso_name="ryoku"`, build modes
+  `bios.syslinux` + `uefi.systemd-boot`, `x86_64`, zstd squashfs, the
+  permission overrides for the installer launchers.
+- `packages.x86_64` is the live-only package set: `base`, `linux`,
+  `linux-firmware`, `mkinitcpio` + `mkinitcpio-archiso`, the microcode pair,
+  the backend toolchain (`arch-install-scripts`, `parted`, `gptfdisk`,
+  `btrfs-progs`, `dosfstools`, `cryptsetup`, `e2fsprogs`, `efibootmgr`,
+  `limine`), `networkmanager` + `iwd` + `wireless-regdb`, `kbd`, the kiosk
+  session (`cage`, `foot`, `xorg-xwayland`, `ttf-jetbrains-mono-nerd`), and a
+  handful of CLI tools the TUI and backend shell out to (`git`, `curl`, `jq`,
+  `openssl`, `sudo`, `less`, `vim`). There is no Go toolchain on the ISO: the
+  TUI ships prebuilt.
+- `airootfs/` is the live-system overlay: autologin on tty1
+  (`getty@tty1.service.d/autologin.conf`), the kiosk launcher
+  (`/usr/local/bin/ryoku-installer-session`), the `ryoku-install` PATH
+  wrapper, and the basic `etc/` files (motd, locale, hostname, vconsole,
+  pacman mirrorlist, NetworkManager Wi-Fi backend).
+
+## What `build.sh` bakes into the image
+
+`installation/iso/build.sh` reads its tree from `installation/iso/`, stages a
+throwaway copy under `staging/profile/`, and writes the bake products into
+that copy's `airootfs/`. The committed profile is never modified.
+
+| Path inside the ISO | Source | How `build.sh` produces it |
+| --- | --- | --- |
+| `/usr/local/bin/ryoku-tui` | `installation/tui/` | `CGO_ENABLED=0 go build -trimpath` against the TUI module. |
+| `/usr/local/bin/ryoku-install` | `installation/iso/airootfs/usr/local/bin/ryoku-install` | The shipped wrapper that `exec`s the real backend. |
+| `/usr/local/lib/ryoku/backend/ryoku-install` | `installation/backend/ryoku-install` | Copied with `install -m0755`. |
+| `/usr/local/lib/ryoku/backend/lib/` | `installation/backend/lib/` | Copied verbatim; the backend resolves its `lib/` via `realpath` of its own script, so the wrapper and the lib must stay together. |
+| `/usr/share/ryoku/` | the whole repo at HEAD | Staged via `git archive HEAD | tar -x`, so gitignored cruft (editor, AI, build dirs, prior ISOs) never ships. The installer reads this as `RYOKU_REPO`. |
+| `/usr/share/ryoku/ryoku/shell/ipc/ryoku-shell` | `ryoku/shell/ipc/` | `CGO_ENABLED=0 go build -trimpath`; the target has no Go toolchain. |
+| `/usr/share/ryoku/ryoku/hub/backend/ryoku-hub` | `ryoku/hub/backend/` | Same Go build pattern. |
+| `/usr/share/ryoku/ryoku/shell/plugin/dist/` | `ryoku/shell/plugin/build.sh` | The `Ryoku.Blobs` QML plugin, prebuilt with `cmake` + `ninja` + `qt6-shadertools` so the target needs no build toolchain. |
+
+`build.sh` also reapplies executable bits on the launchers (`profiledef.sh`'s
+`file_permissions` does it again at archiso time, but keeping the staged
+tree self-consistent matters for `--stage-only` use).
+
+## The live-session boot path
+
+Once `mkarchiso` produces the image, the live session is fully scripted:
+
+1. Kernel + archiso initramfs bring up the live system from the squashfs.
+2. `agetty` autologs root in on tty1 with no password (defined in the
+   `airootfs` overlay).
+3. The login shell runs `/usr/local/bin/ryoku-installer-session`, which
+   exports `RYOKU_REPO=/usr/share/ryoku`, `RYOKU_BACKEND=ryoku-install`,
+   `COLORTERM=truecolor`, and the wlroots software-render flags
+   (`WLR_RENDERER=pixman`, `WLR_RENDERER_ALLOW_SOFTWARE=1`).
+4. It runs `cage -- foot -o term=xterm-256color -f 'JetBrainsMono Nerd Font:size=14' -e ryoku-tui`,
+   relaunching on a crash so the console never drops to a bare prompt
+   mid-install. After three failed Wayland starts it falls back to running
+   `ryoku-tui` on the kernel VT.
+5. The TUI collects answers and hands off to `ryoku-install`, which
+   partitions, formats, sets up encryption if asked, `pacstrap`s from
+   `system/packages/`, lays the desktop, and configures Limine.
+
+`cage` + `foot` instead of the bare kernel VT is deliberate: the kernel
+console has 16 colors and no Nerd Font glyphs, so the TUI would fall back to
+plain ASCII. The serial console (`ttyS0`) and other VTs stay a plain root
+shell for headless or recovery use; you can set the `RYOKU_*` answers and
+run `ryoku-install` by hand against `/usr/share/ryoku`.
+
+## Building locally
+
+Requirements on the build host:
+
+- `go` to compile the TUI, the shell daemon, and the Hub backend.
+- `cmake`, `ninja`, `qt6-shadertools`, `qt6-declarative` to compile the
+  `Ryoku.Blobs` QML plugin.
+- `archiso` for `mkarchiso`.
+- Root (`mkarchiso` needs it; `build.sh` calls `sudo` when not run as root).
+- `git`: the repo payload is staged via `git archive HEAD`, so the build
+  must run inside a git checkout.
+
+Recipe:
+
+```bash
+cd installation/iso
+./build.sh
+```
+
+The finished ISO lands in `installation/iso/out/`. Work and staging trees
+live under `installation/iso/work/` and `installation/iso/staging/`; both
+are gitignored.
+
+To stage everything but stop before `mkarchiso` (useful without root):
+
+```bash
+./build.sh --stage-only
+```
+
+If `mkarchiso` is missing on the host, `build.sh` stages the profile and
+prints the exact follow-up command, which boils down to:
+
+```bash
+sudo mkarchiso -v -w work -o out ./staging/profile
+```
+
+### Build environment overrides
+
+`build.sh` honors three env vars for output and intermediate locations:
+
+- `RYOKU_ISO_OUT` ISO output dir (default `./out`).
+- `RYOKU_ISO_WORK` mkarchiso work dir (default `./work`).
+- `RYOKU_ISO_STAGE` staging tree root (default `./staging`).
+
+CI uses these to keep `mkarchiso`'s work tree on a real ext4 bind mount
+under `$RUNNER_TEMP` rather than the container's overlay layer.
+
+## Preflight checks `build.sh` enforces
+
+Before staging, `build.sh` aborts cleanly if any of these are missing:
+
+- `installation/tui/go.mod` (the TUI module).
+- `installation/backend/ryoku-install` (the backend orchestrator).
+- `installation/backend/lib/` (the backend's library).
+- `go` on `PATH` (TUI build).
+- `cmake` and `ninja` on `PATH` (the `Ryoku.Blobs` plugin build).
+
+These are the only hard prerequisites; the rest is what `mkarchiso` itself
+checks.
+
+## When to add things vs. leave them out
+
+The ISO is intentionally small. The package list under `packages.x86_64` is
+the **live environment** only; the target system's packages are pacstrapped
+by the backend at install time from `system/packages/` and never belong in
+the live set.
+
+Add to `packages.x86_64` only when:
+
+- The TUI or backend shells out to a binary that is not already there.
+- The live kiosk session needs a tool to render (a new font, a missing
+  shell, a codec the kiosk requires).
+
+Add to `airootfs/` only when the live system needs a static file before any
+backend script can run (a service unit, a config drop-in, a launcher).
+
+For everything else, ship it in the payload (`/usr/share/ryoku/`) or as a
+runtime helper through `ryoku-desktop`. The build script then needs no
+changes.
+
+## Output
+
+After a successful build:
+
+```
+installation/iso/out/
+└── ryoku-<YYYY.MM.DD>-x86_64.iso
+```
+
+CI renames the artifact to the tracked public name
+`ryoku-<YYYY.MM.DD>-r<run>-<sha>-x86_64-<channel>.iso` and adds the detached
+signature, checksum, and per-ISO manifest alongside it before publishing.
+See [/docs/release-pipeline](/docs/release-pipeline).
