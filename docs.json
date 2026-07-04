@@ -3,9 +3,30 @@
   "theme": "mint",
   "name": "Ryoku",
   "colors": {
-    "primary": "#F25623",
-    "light": "#F56E0F",
-    "dark": "#C0431B"
+    "primary": "#e2342a",
+    "light": "#ef5b50",
+    "dark": "#e2342a"
+  },
+  "appearance": {
+    "default": "dark",
+    "strict": true
+  },
+  "fonts": {
+    "heading": {
+      "family": "Fraunces"
+    },
+    "body": {
+      "family": "Space Grotesk"
+    }
+  },
+  "background": {
+    "color": {
+      "dark": "#100d08"
+    }
+  },
+  "styling": {
+    "eyebrows": "section",
+    "codeblocks": "dark"
   },
   "favicon": "/assets/brand/logo.svg",
   "logo": {
