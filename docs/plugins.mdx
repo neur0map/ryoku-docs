@@ -1,141 +1,156 @@
 ---
 title: Plugins
-description: How Ryoku extends itself. The shell ships its workflow surfaces directly; software is added through the Extras catalogue, which routes installs through the ryoku-pkg-* wrappers.
+description: Shell plugins are small desktop widgets and frame popouts; you write the logic and one view, and Ryoku owns their look, motion, sizing, and placement.
+icon: puzzle-piece
 ---
 
-Ryoku stays opinionated by keeping its core small and putting growth in two
-well-defined places: the **shell** carries the daily workflow surfaces
-(capture, media, hardware, updates) directly, and **Extras** is the catalogue
-of optional apps and tools the Hub installs on demand. There is no separate
-plugin SDK; the contract is "use the shell or use the catalogue."
+A **plugin** is a small **widget** you place on your desktop: a stock ticker on
+the wallpaper, a photo beside the clock, a panel that melts out of the screen
+edge on hover. The author writes the *logic and one view*; Ryoku owns *where it
+lives, how it looks, how it moves, and how it sizes*. That split is the whole
+point, a plugin always looks and behaves like a native part of the shell,
+because the shell draws the surface around it.
 
-## What ships in the shell
+<Note>
+  Plugins are **widgets**, not applications. To install real software (game
+  launchers, dev stacks, security tools), use [Extras](/docs/extras) bundles, a
+  separate system.
+</Note>
 
-The desktop shell (`ryoku-shell` daemon + Quickshell QML in
-`ryoku/shell/quickshell/`) integrates its workflow surfaces directly. They are
-not optional add-ons, they are how the desktop works:
+## The two hosts
 
-- **Frame** the rounded screen border and the popouts that melt into it.
-- **Pill** the morphing top bar and its island (fused island, floating pill,
-  or none, each optionally reveal-on-hover).
-- **Update island** reads `$XDG_RUNTIME_DIR/ryoku-update.json` and shows
-  `ryoku update` runs live in the pill.
-- **Sidebar** the slide-in panel for quick actions.
-- **Ryoshot** screenshot capture and annotation (`Mod+S`), with color picking
-  (`Mod+Shift+C`).
-- **Control deck** (`Mod+D`) the stash, tools, and utilities (lens, OCR, QR,
-  mirror, screenrecord, nightlight, caffeine), each driven by a `ryoku-cmd-*`
-  helper in `ryoku/hyprland/scripts/`.
-- **Wallpaper picker** (`Mod+C`) and **next wallpaper** (`Mod+W`), backed by
-  swww and a wallust palette regeneration on every change.
-- **Workspace switcher** (`Mod+Tab`), **app launcher** (`Mod+Space`),
-  **clipboard history** (`Mod+V`), **speech-to-text** (`` Mod+` ``),
-  **keybind reference** (`Mod+K`).
-- **Desktop widgets** clock and weather on the wallpaper, configured in
-  **Ryoku Settings > Desktop Widgets**.
-- **Audio visualiser** (`Mod+M`, `Mod+Shift+M`), driven by the shell daemon.
-- **Hardware helpers** GPU pinning, monitor management, microphone, LED, idle,
-  laptop firmware, each a `ryoku-<thing>` script under
-  `system/hardware/.../`, shipped to `/usr/bin` by `ryoku-desktop` and called
-  by name from Lua autostart or a keybind.
+When you enable a plugin you pick **one** host for it. The same widget can run in
+either; Ryoku just renders it differently.
 
-These do not install; they are part of the desktop you already have.
+<Tabs>
+  <Tab title="Desktop widget">
+    A tile on the wallpaper, next to the clock and weather, with the same
+    machinery they have:
 
-## Extras: how Ryoku installs optional software
+    - **Left-drag** to move it (snaps to a grid).
+    - **Right-click** for its menu: **Lock** to freeze it in place, **Hide** to
+      turn it off.
+    - **Drag the bottom-right corner** to resize, live, from 50% to 250%.
+    - It rides on a card (rounded, translucent, soft shadow) that matches the
+      clock and weather.
 
-When you want to add real software (a browser other than chromium, a game
-launcher, a developer toolchain, an app that needs its own drivers), the
-**Extras** catalogue does it for you. The user-facing entry is
-**Ryoku Settings > Extras**; the actuator is `ryoku-extras-install`. Each
-entry is a **bundle**: a curated set of packages, small installer scripts,
-and shell plugins defined in the `ryoku-extras` catalogue
-(`github.com/neur0map/ryoku-extras`, under `bundles/`). `ryoku-hub` fetches
-and caches that catalogue; the helpers do the work.
+    You arrange desktop widgets directly on the wallpaper, not from Settings.
+  </Tab>
+  <Tab title="Frame popout">
+    A panel that melts out of the [frame](/docs/tour) border on hover, fused into
+    the same blob as the volume mixer and power menu.
 
-### What a bundle can contain
+    - You pick the **edge** it grows from (top, right, bottom, or left) and which
+      **end** of that edge it aligns to (**start** or **end**; the centre of each
+      edge is reserved for the shell's own island and mixer).
+    - Ryoku handles the hover trigger, the open and close animation, and the fuse
+      into the frame. The popout grows to fit the widget, you never set its size.
+    - Toggle it open from a key with `ryoku-shell plugin <id>` (bind it in
+      [Customize](/docs/customize)).
+  </Tab>
+</Tabs>
 
-A bundle is a list of items, each one of:
+<Note>
+  Island, top-bar glyph, and window hosts are planned but not built yet. Today a
+  plugin declares `desktopWidget`, `framePopout`, or both.
+</Note>
 
-- **`package`** an Arch package name. Routing is decided at install time: a
-  package that resolves with `pacman -Si` is an official-repo package and is
-  installed via `ryoku-pkg-add`; otherwise it is built from the AUR via
-  `ryoku-pkg-aur-add`. A bundle author only ever writes a package name.
-- **`script`** a small installer from the catalogue's `installers/`,
-  detected by a `command -v` check (`ryoku-cmd-present`).
-- **`plugin`** a shell plugin, handled by the shell's plugin path.
+## Install, enable, place
 
-A bundle that needs 32-bit libraries (Steam, the lib32 overlay) declares
-`"requires": ["multilib"]`, and the actuator runs `ryoku-pkg-multilib` first
-to enable the `[multilib]` pacman repo idempotently.
+<Steps>
+  <Step title="Install from the Store">
+    Press `Mod + ,` for Ryoku Settings and open **Store** (under **Add-ons**). It
+    opens on a grid of plugin cards with live previews; open one and choose
+    **Install**. The source downloads to `~/.local/share/ryoku/plugins/<id>/`.
+  </Step>
+  <Step title="Enable it">
+    Switch to **Installed** (also under **Add-ons**) and toggle the plugin
+    **Enabled**.
+  </Step>
+  <Step title="Pick a host and place it">
+    In the same panel choose the host. For a **frame popout**, set the edge and
+    alignment there. A **desktop widget** appears on the wallpaper, where you
+    drag, corner-resize, lock, or hide it directly.
+  </Step>
+</Steps>
 
-### The helpers, by name
+Placement and settings persist to `~/.config/ryoku/plugins.json`. The shell
+watches that file and retunes every surface **live**, no reload, no restart.
+Removing a plugin (from **Installed**) deletes its files but keeps your
+placement, so reinstalling drops it back where you had it.
 
-These ship to `/usr/bin` with `ryoku-desktop`. The Hub drives them; nothing
-here runs at boot.
+## Example plugins
 
-| Helper                  | What it does                                                                  |
-| ----------------------- | ----------------------------------------------------------------------------- |
-| `ryoku-extras-install`  | The actuator. Reads a bundle from the cache and installs, removes, or reports its items. |
-| `ryoku-pkg-add`         | Install official-repo packages (`sudo pacman -S --needed --noconfirm`).       |
-| `ryoku-pkg-aur-add`     | Install AUR packages with the system AUR helper (yay; paru as a fallback).    |
-| `ryoku-pkg-multilib`    | Enable the `[multilib]` repo, for bundles that need 32-bit packages.          |
-| `ryoku-pkg-remove`      | Remove packages and their now-orphaned dependencies (`pacman -Rs`).           |
-| `ryoku-cmd-present`     | The shared presence check (`command -v`) used by detection.                   |
+Ryoku ships two official plugins in the catalogue, both desktop widgets:
 
-### From a terminal
+<CardGroup cols={2}>
+  <Card title="Market" icon="chart-line">
+    Track any Yahoo Finance symbol, a crypto pair (`BTC-USD`), a stock (`AAPL`),
+    or an index (`^GSPC`), with live price, change, and history in one of four
+    faces: dossier, line, area, or minimal.
+  </Card>
+  <Card title="Photo Frame" icon="image">
+    Pin any photo to your wallpaper in a chosen style (rounded, square, polaroid,
+    framed, or film) with a tunable drop shadow and colour filters. Ships with a
+    sample photo so it looks right the moment you enable it.
+  </Card>
+</CardGroup>
 
-The Hub is the normal entry point. If you want to drive it from a shell,
-`ryoku-extras-install` is the command:
+Each plugin's own options (Market's symbol and face, Photo Frame's style and
+filter) live in its settings, edited from **Installed** or the desktop widget's
+right-click menu.
+
+## From a terminal
+
+The Hub is the normal path, but the same actions have commands. Ids are the ones
+in the [`ryoku-extras`](https://github.com/neur0map/ryoku-extras) plugin
+catalogue (`market`, `photo-frame`).
 
 ```bash
-# Show what is installed and what is missing, machine-readable.
-ryoku-extras-install status
-ryoku-extras-install status bundle gaming
+# Install a plugin from the catalogue (fetches into ~/.local/share/ryoku/plugins).
+ryoku-hub extras plugin market
 
-# Install everything in a bundle (the Hub runs this in a floating terminal so
-# sudo and the AUR helper have a TTY).
-ryoku-extras-install install bundle gaming
+# Remove a plugin's files (your placement in plugins.json is kept).
+ryoku-hub extras pluginremove market
 
-# Install one item from a bundle.
-ryoku-extras-install install item gaming steam
+# Enable it and place it as a desktop widget (writes plugins.json; retunes live).
+ryoku-plugins-place market enabled true
+ryoku-plugins-place market host desktopWidget
+ryoku-plugins-place market desktopWidget 120 80      # x y [scale] [locked]
 
-# Remove a bundle's package items.
-ryoku-extras-install remove bundle gaming
+# For a frame-popout plugin: set the edge and alignment, then toggle it open.
+ryoku-plugins-place <id> framePopout top end         # edge align [hoverW] [hoverH]
+ryoku-shell plugin <id>
 ```
 
-Set `RYOKU_EXTRAS_DRYRUN=1` to print the plan without changing anything.
+## Write your own
 
-`ryoku-hub` owns the network and the cache: it writes the catalogue to its
-cache dir (queryable with `ryoku-hub extras cache`), and the helpers read
-from there. They never fetch on their own.
+Yes, Ryoku has a plugin SDK. A plugin is a folder with a `manifest.json`, a
+non-visual `service/Main.qml` (your logic and state), and one `content/Widget.qml`
+(your view), installed to `~/.local/share/ryoku/plugins/<id>/`. Your view imports
+the `Ryoku.PluginKit` deck kit, so it picks up the shell's colours, type, and
+motion automatically.
 
-### Per-bundle reports
+<Warning>
+  **The golden rule:** never set your own position, never draw your own window
+  chrome, never assume your size. You report your content's natural
+  `implicitWidth` and `implicitHeight`; Ryoku sizes the card or grows the popout
+  around it. Break this rule and your plugin looks bolted-on instead of native.
+</Warning>
 
-The actuator publishes a JSON report per bundle under
-`$XDG_RUNTIME_DIR/ryoku-extras/<id>.json`. The Hub watches the file so its
-Extras section updates live as a bundle installs or removes.
+The full authoring guide, the manifest schema, the three densities (`glyph`,
+`compact`, `full`), and the settings schema live in the repo:
 
-### Boundaries
-
-- Package transactions go through pacman and the AUR helper. The
-  `ryoku-pkg-*` wrappers are thin and do not reimplement them.
-- Drivers and dependencies an app needs are part of the bundle, so adding a
-  tool does not mean hunting for the matching driver by hand.
-- Removal goes through `pacman -Rs`, which refuses to drop a package another
-  installed package still needs, so uninstalling an extras bundle never
-  breaks the rest of the system.
-
-## What about a custom plugin SDK?
-
-There is not one to document. The shell is the surface; Extras is the
-catalogue. If you want to add a workflow surface, the path is to write a
-Quickshell component under `ryoku/shell/quickshell/` and wire its state
-through `ryoku-shell` (see the internal contributor docs). If you want to
-add software, write a bundle in `ryoku-extras`.
+- [`docs/plugins.md`](https://github.com/neur0map/ryoku-arch/blob/main/docs/plugins.md) in `ryoku-arch`, the canonical guide.
+- [`plugins/AUTHORING.md`](https://github.com/neur0map/ryoku-extras/blob/main/plugins/AUTHORING.md) in `ryoku-extras`, alongside a `template/` plugin to copy.
 
 ## See also
 
-- [Customize](/docs/customize) for what you can tune without writing code.
-- [Updates](/docs/updates) for how installed packages stay current.
-- [Keybindings](/docs/keybindings) for the binds that open the surfaces
-  above.
+<CardGroup cols={2}>
+  <Card title="Extras" icon="cubes" href="/docs/extras">
+    Software bundles, the other half of how Ryoku grows beyond its core.
+  </Card>
+  <Card title="Ryoku Settings" icon="sliders" href="/docs/settings">
+    The Store and Installed panels, and everything else the Hub tunes.
+  </Card>
+</CardGroup>

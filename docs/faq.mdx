@@ -1,0 +1,116 @@
+---
+title: FAQ
+description: Short answers to the questions Ryoku users ask most, each pointing at the page with the full story.
+icon: circle-question
+---
+
+Quick answers to the things people ask first. Each one links to the page that
+covers it in full — start here, then follow the link when you want the detail.
+
+<AccordionGroup>
+  <Accordion title="How do I update Ryoku?">
+    Run `ryoku update`. One command takes a snapshot, brings the system current
+    from the signed `[ryoku]` repo, re-lays the base config with
+    `ryoku materialize`, and reloads the shell. There is a single channel
+    (`main`) — no channel switching and no git-pull update. You can also start a
+    run from **Ryoku Settings > Updates** or the update island in the pill. See
+    [CLI](/docs/cli) for the command reference and [Updates](/docs/updates) for
+    the full model.
+  </Accordion>
+  <Accordion title="How do I roll back a bad update?">
+    On a btrfs root every `ryoku update` is wrapped in a snapper pre/post
+    snapshot pair. Run `ryoku rollback` to list snapshots and pick one, or
+    `ryoku rollback <id>` to go straight to it. The same snapshots are selectable
+    from the Limine boot menu, so even a system that will not boot back into
+    Hyprland can be recovered from the bootloader. The full rollback and recovery
+    path is in [Updates](/docs/updates).
+  </Accordion>
+  <Accordion title="Where do my configs live, and which survive updates?">
+    Ryoku's base config is laid down under `~/.config` by `ryoku materialize`,
+    which runs on every update. Your own changes go in the dedicated override
+    files that updates never touch: `~/.config/hypr/user.lua`,
+    `~/.config/kitty/user.conf`, `~/.config/fish/user.fish`, and
+    `~/.config/hypr/monitors_user.lua`. Editing shipped files in place works too,
+    but the override files are the update-safe way to customize. See
+    [Customize](/docs/customize).
+  </Accordion>
+  <Accordion title="How do I change the theme or wallpaper?">
+    Pick a theme in **Ryoku Settings > Appearance** — Ryoku ships fifteen. For
+    wallpapers, press `Mod + W` to cycle a random one, `Mod + C` for the quick
+    picker, or `Mod + Shift + W` to open Ryowalls and browse wallhaven. By
+    default the color palette follows the wallpaper (via wallust); some themes
+    lock to a fixed palette instead. See [Theming](/docs/theming).
+  </Accordion>
+  <Accordion title="How do I install more software, like a game launcher?">
+    Open **Ryoku Settings > Store** and install an Extras bundle — the Gaming
+    bundle brings Wine/Proton, launchers, overlays, and a Wayland-friendly
+    Discord. From a terminal it is `ryoku-extras-install install bundle gaming`.
+    You can still use pacman, the AUR, and Flatpak directly for anything not in a
+    bundle. See [Extras](/docs/extras).
+  </Accordion>
+  <Accordion title="How do I add a desktop widget?">
+    Desktop widgets are shell plugins. Install one from **Ryoku Settings >
+    Store**, then enable and place it from the **Installed** tab. A desktop
+    widget lives on the wallpaper — left-drag to move it, right-click to lock or
+    hide it, and drag its corner to resize — while a frame popout melts out of a
+    screen edge on hover. See [Plugins](/docs/plugins).
+  </Accordion>
+  <Accordion title="Is it still Ryoku if I switch to the CachyOS kernel?">
+    Yes. Ryoku is the desktop, not the kernel. The CachyOS kernel is an opt-in
+    Extras bundle; installing it leaves the stock Arch kernel in place as a
+    fallback, so you can always boot back or remove the bundle. See
+    [Kernels](/docs/kernels).
+  </Accordion>
+  <Accordion title="How do I switch keyboard layout or fix my input devices?">
+    Open **Ryoku Settings > Input**. It sets keyboard layout, key repeat, and
+    pointer/touchpad behavior, and applies the change live. The chosen layout is
+    also carried into a fresh session. See [Hardware](/docs/hardware) and
+    [Settings](/docs/settings).
+  </Accordion>
+  <Accordion title="My screen is the wrong resolution or using the wrong GPU.">
+    Set resolution, scale, and rotation in **Ryoku Settings > Displays**. Laptop
+    (eDP) panels expose only their native resolution, so use the scale options to
+    get a smaller desktop. For graphics, **Displays > GPU** pins the render
+    device; it is read at login, so log out and back in to apply it. See
+    [Hardware](/docs/hardware) and [Troubleshoot](/docs/troubleshoot).
+  </Accordion>
+  <Accordion title="The desktop didn't draw after login.">
+    Run `ryoku reload` to restart the shell, then check
+    `~/.local/state/ryoku-shell.log`. The usual causes are an update that left
+    the shell out of sync (run `ryoku update` again, or `ryoku rollback`), a Lua
+    error in a hand-edited `user.lua` or `monitors_user.lua`, or a corrupt
+    generated `monitors.lua`/`gpu.lua` that `ryoku doctor` repairs. The full
+    checklist is in [Troubleshoot](/docs/troubleshoot).
+  </Accordion>
+  <Accordion title="Can I convert my existing Arch install instead of reinstalling?">
+    Yes. The shell installer scans your machine, shows you the toggles it will
+    apply, backs up every config it touches (with a `restore.sh`), adds the
+    `[ryoku]` repo, installs the Ryoku packages, and materializes the config. It
+    is fully reversible with `ryoku-shell-install --uninstall`. See
+    [Convert](/docs/convert).
+  </Accordion>
+  <Accordion title="Does Rashin send my data anywhere?">
+    No. Rashin is optional and off by default; when you do enable it, the daemon
+    binds `127.0.0.1` only and nothing leaves the machine. The knowledge vault is
+    plain markdown on your disk, and you bring your own model provider through
+    Hermes. See [Rashin](/docs/rashin) and [Security](/docs/security).
+  </Accordion>
+  <Accordion title="How do I verify my ISO download?">
+    Import the release key, confirm its fingerprint, then `gpg --verify` the ISO
+    against its `.sig` and `sha256sum -c` its `.sha256`. Every ISO and every
+    `[ryoku]` package is signed by `Ryoku Releases <releases@ryoku.dev>`. The
+    exact commands and the fingerprint to check against are in
+    [Security](/docs/security).
+  </Accordion>
+</AccordionGroup>
+
+## Still stuck?
+
+<CardGroup cols={2}>
+  <Card title="Troubleshoot" icon="wrench" href="/docs/troubleshoot">
+    Logs, `ryoku doctor`, recovery, and how to file a useful bug.
+  </Card>
+  <Card title="CLI" icon="terminal" href="/docs/cli">
+    The full `ryoku` command reference behind every answer above.
+  </Card>
+</CardGroup>

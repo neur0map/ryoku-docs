@@ -1,68 +1,28 @@
 ---
 title: Customize
-description: How to change appearance, themes, wallpapers, per-app settings, and keybinds without fighting the updater.
+description: Edit the plain config files updates never touch — personal Hyprland overrides, hand-pinned displays, and per-app settings.
+icon: file-pen
 ---
 
-Most customization happens in **Ryoku Settings** (the Hub), opened with
-`Mod+,`. For everything Settings does not cover, Ryoku reserves three plain
-files in `~/.config/hypr/` that updates never touch: `user.lua` for personal
-Hyprland overrides, `monitors_user.lua` for hand-pinned displays, and the
-per-app `user.conf` / `user.fish` style files for individual tools.
+Most customization happens in **Ryoku Settings** (the Hub), opened with `Mod+,`.
+This page is the other half: the plain files Ryoku reserves for you in
+`~/.config/`, which `ryoku update` never touches. Reach for them when the GUI
+does not cover what you want, or when you would rather edit text than click.
 
-## Ryoku Settings (`Mod+,`)
+<CardGroup cols={2}>
+  <Card title="Settings (the GUI)" icon="sliders" href="/docs/settings">
+    Appearance, displays, input, keybinds, the shell, and more, applied live.
+  </Card>
+  <Card title="Theming" icon="palette" href="/docs/theming">
+    Full-system themes, the wallust palette, and wallpapers.
+  </Card>
+</CardGroup>
 
-The Hub is the main customization surface. It is a Qt6/QML control center
-(`ryoku-hub`) that writes machine state under `~/.config/hypr/settings.lua`
-plus the shell's config, and applies them live. From here you can change:
-
-- Appearance: full-system theme, animations, decoration, transparency,
-  rounding, padding, spacing, font scale.
-- Displays: per-output resolution, scale, refresh rate, position, rotation,
-  GPU pin.
-- Input: keyboard layout, repeat, mouse and touchpad behavior.
-- Keybinds: a live shortcut legend (`Mod+K`) and the per-action overrides.
-- Lockscreen and login: SDDM greeter, the lock theme.
-- Window and layer rules: floating, opacity, blur, workspace pinning,
-  autostart rules.
-- The shell: the pill island style (fused island, floating pill, or none,
-  each optionally reveal-on-hover), the frame, the sidebar, the keyring
-  island, and the desktop widgets (clock and weather).
-- Extras: the bundles of optional apps and tools the Hub installs through
-  `ryoku-extras-install` (see [Plugins](/docs/plugins)).
-
-## Themes
-
-The full-system themes ship in `ryoku/hyprland/themes/`. Pick one from
-**Ryoku Settings > Appearance**; the Hub flips a symlink the Hyprland config
-loads as `theme`, then reloads.
-
-The shipped set is:
-
-```
-aqua        cassette    catppuccin   compact      crt
-default     drift       glass        gruvbox      mountains
-nord        rose-pine   soft_color   tokyo-night  washi
-```
-
-A theme tunes motion, decoration, and palette anchors. The desktop's color
-work is then driven by **wallust** (`ryoku/shell/wallust/`), which regenerates
-the live palette from your current wallpaper. The brand constants do not
-theme: the 力 mark and the accent orange `#F25623` stay fixed.
-
-Type is JetBrains Mono Nerd for mono and Noto for the rest; the cursor is
-Bibata. These follow the system, not the theme.
-
-## Wallpapers
-
-Drop image, animated, or video files into `~/Pictures/Wallpapers`. The shell
-picks them up automatically.
-
-- `Mod+W` cycles to the next wallpaper.
-- `Mod+C` opens the wallpaper picker.
-
-The swww backend draws them. Each wallpaper change re-runs wallust, so the
-shell, the pill, the lockscreen, and the apps that read the wallust palette
-restyle together.
+<Info>
+  Displays have both paths: tune them in **Settings > Displays** (see [Displays &
+  hardware](/docs/hardware)), and hand-pin the stubborn ones in
+  `monitors_user.lua`, below.
+</Info>
 
 ## Personal Hyprland overrides: `user.lua`
 
@@ -73,10 +33,10 @@ over both the shipped defaults and anything Ryoku Settings writes.
 The load order, from `ryoku/hyprland/hyprland.lua`, is:
 
 1. `modules.env`, `keyboard.lua`.
-2. Generated drop-ins `gpu.lua` and `monitors.lua` (and your
-   `monitors_user.lua` if present).
-3. The base modules (`displays`, `input`, `decoration`, `animations`,
-   `binds`, `resize`, `ryoshot`, `window_rules`, `fullscreen`, `autostart`).
+2. Generated drop-ins `gpu.lua` and `monitors.lua` (and your `monitors_user.lua`
+   if present).
+3. The base modules (`displays`, `input`, `decoration`, `animations`, `binds`,
+   `resize`, `ryoshot`, `window_rules`, `fullscreen`, `autostart`).
 4. The active `theme` (selected in Settings).
 5. `settings.lua` (written by the Hub).
 6. `user.lua` (yours, loaded last, wins).
@@ -92,42 +52,56 @@ hl.bind("SUPER", "U", "exec, kitty -e htop")
 hl.windowrule("float", "class:^(pavucontrol)$")
 ```
 
-Use the `hl` API the modules use (`hl.bind`, `hl.windowrule`, the keyword
-setters); do not shell out to `hyprctl` from Lua when an `hl` call exists.
+<Tip>
+  Use the `hl` API the modules use (`hl.bind`, `hl.windowrule`, the keyword
+  setters); do not shell out to `hyprctl` from Lua when an `hl` call exists.
+</Tip>
 
 ## Manual monitor pinning: `monitors_user.lua`
 
-`ryoku-monitor` writes `~/.config/hypr/monitors.lua` once per machine and
-rewrites it on hotplug or GPU reset. To hand-pin a layout (a fake-EDID display
-that needs a forced mode, a forced modeline, a specific position), write
-`~/.config/hypr/monitors_user.lua` instead. It loads after the generated file
-so your pins win.
+For everyday display changes, use **Settings > Displays** (see [Displays &
+hardware](/docs/hardware)). It writes the generated `~/.config/hypr/monitors.lua`,
+which `ryoku-monitor` also rewrites once per machine and on hotplug or GPU reset.
 
-A template ships at `~/.config/hypr/monitors_user.lua.example`.
+When you need a layout the panel cannot express, a fake-EDID display that needs a
+forced mode, a forced modeline, or a specific position, write
+`~/.config/hypr/monitors_user.lua` instead. It loads after the generated file, so
+your pins win, and updates never touch it. A template ships at
+`~/.config/hypr/monitors_user.lua.example`.
 
 ## Per-app settings
 
 Each app under `ryoku/apps/<app>/` keeps its native format under its own
-directory; there is no Lua wrapper for a tool that reads its own config:
+directory; there is no Lua wrapper for a tool that reads its own config. Where an
+app ships a base file, drop your changes in the paired override file so an update
+cannot clobber them:
 
-| App        | Shipped file                  | Override file                |
-| ---------- | ----------------------------- | ---------------------------- |
-| Kitty      | `~/.config/kitty/kitty.conf`  | `~/.config/kitty/user.conf`  |
-| Fish       | `~/.config/fish/config.fish`  | `~/.config/fish/user.fish`   |
-| Starship   | `~/.config/starship.toml`     | edit in place                |
-| Neovim     | `~/.config/nvim/`             | LazyVim's own override paths |
-| Yazi       | `~/.config/yazi/yazi.toml`    | edit in place                |
-| Fastfetch  | `~/.config/fastfetch/`        | edit in place                |
+| App | Shipped file | Override file |
+| --- | --- | --- |
+| Kitty | `~/.config/kitty/kitty.conf` | `~/.config/kitty/user.conf` |
+| Fish | `~/.config/fish/config.fish` | `~/.config/fish/user.fish` |
+| Starship | `~/.config/starship.toml` | edit in place |
+| Neovim | `~/.config/nvim/` | LazyVim's own override paths |
+| Yazi | `~/.config/yazi/yazi.toml` | edit in place |
+| Fastfetch | `~/.config/fastfetch/` | edit in place |
 
-`ryoku materialize` clobbers the files Ryoku ships and prunes files a past
-release shipped but this one dropped. It **never touches** files Ryoku never
-shipped, which is what makes `user.lua`, `monitors_user.lua`,
-`kitty/user.conf`, `fish/user.fish`, and your own additions survive every
-update.
+## What survives an update
 
-The generated drop-ins (`hypr/monitors.lua`, `hypr/gpu.lua`) are seeded only
-when absent and are never clobbered or pruned, so an update never resets your
-display layout or GPU pin.
+[`ryoku materialize`](/docs/cli#config-lay-down-ryoku-materialize) clobbers the
+files Ryoku ships and prunes files a past release shipped but this one dropped. It
+**never touches** files Ryoku never shipped, which is what makes `user.lua`,
+`monitors_user.lua`, `kitty/user.conf`, `fish/user.fish`, and your own additions
+survive every update.
+
+The generated drop-ins (`hypr/monitors.lua`, `hypr/gpu.lua`) are seeded only when
+absent and are never clobbered or pruned, so an update never resets your display
+layout or GPU pin.
+
+<Warning>
+  Editing a shipped file in place (anything in the "shipped file" column above,
+  or `hypr/hypridle.conf`, and the other base configs) is reset on the next
+  `ryoku materialize`. Put lasting changes in an override file, or in `user.lua`.
+</Warning>
 
 ## Reloading after a change
 
@@ -142,7 +116,17 @@ changes live and does not need a reload.
 
 ## See also
 
-- [Keybindings](/docs/keybindings) for the binds Settings can rewrite.
-- [Plugins](/docs/plugins) for adding apps and tools through the Extras
-  catalogue.
-- [Troubleshoot](/docs/troubleshoot) when a hand-edit breaks the desktop.
+<CardGroup cols={2}>
+  <Card title="Settings" icon="sliders" href="/docs/settings">
+    The GUI for everything above, and the panels this page complements.
+  </Card>
+  <Card title="Theming" icon="palette" href="/docs/theming">
+    Themes, palette, and wallpapers.
+  </Card>
+  <Card title="Displays & hardware" icon="display" href="/docs/hardware">
+    The GUI display, GPU, input, and power controls.
+  </Card>
+  <Card title="Keybindings" icon="keyboard" href="/docs/keybindings">
+    The shipped binds `user.lua` can override.
+  </Card>
+</CardGroup>

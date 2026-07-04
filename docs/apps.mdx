@@ -1,0 +1,166 @@
+---
+title: Apps & tools
+description: The curated set of apps, launcher providers, and built-in tools that work the moment you log in.
+icon: toolbox
+---
+
+Ryoku ships a small, curated toolkit, not a grab bag of everything on the AUR.
+Everything below is installed, wired to a key, and working the moment you log
+in: a terminal, an editor, a browser, two file managers, a media player, and a
+command palette that reaches the rest. Want more software? [Extras](/docs/extras)
+adds whole bundles in one click.
+
+## Core apps
+
+Each core app has a launch key. `Mod` is `Super`.
+
+| App | Role | Key | Command |
+| --- | --- | --- | --- |
+| Kitty | Terminal | `Mod + Return` | `kitty` |
+| Neovim (LazyVim) | Editor | `Mod + N` | `kitty -e nvim` |
+| Chromium | Browser | `Mod + B` | `chromium` |
+| Nautilus | Files (GUI) | `Mod + E` | `nautilus` |
+| Yazi | Files (terminal) | `Mod + Alt + E` | `kitty -e yazi` |
+| mpv | Media player | — | opens audio/video; also RyoTunes' engine |
+
+Neovim comes set up with a LazyVim configuration. mpv has no launch bind: it
+opens the media you hand it, and it is the audio engine behind
+[RyoTunes](#ryotunes).
+
+See [Keybindings](/docs/keybindings) for the complete, authoritative bind list.
+
+## The launcher
+
+Press `Mod + Space` to open the launcher, Ryoku's command palette. Start typing
+to search apps, open windows, files, and snippets at once, or lead with a prefix
+to talk to one provider directly.
+
+| Prefix | Provider | What it does |
+| --- | --- | --- |
+| _(none)_ | Apps, files, windows, snippets | Fuzzy search everything at once |
+| `@` | YouTube Music | Search and play free music (see [RyoTunes](#ryotunes)) |
+| `=` | Calculator | qalc: math, units, currency |
+| `/` | Actions | System actions: lock, wallpaper, screenshot, night light, media, settings |
+| `;` | Clipboard | Clipboard history, copy or delete |
+| `?` | Web search | Web search with `!bang` shortcuts and an inline instant answer |
+| `\` | Rashin ask | One question to the local [Rashin](/docs/rashin) agent |
+| `install` / `remove` / `search` | Packages | Install or remove software across every package manager |
+
+<Tip>
+Type with no prefix and the launcher fans your query across apps, files, open
+windows, and snippets at once, ranked by score and by how often you launch each
+app.
+</Tip>
+
+The `\` Rashin lane needs the optional Rashin agent enabled; see
+[Rashin](/docs/rashin).
+
+### RyoTunes
+
+RyoTunes is Ryoku's built-in free music, and the launcher is its front door.
+There is no account and no API key, because YouTube Music's public endpoints are
+keyless.
+
+- **Search and play.** Type `@` then a song or artist. Results show real songs
+  (clean title, artist, album, duration, and album art). Pick one and it plays
+  inline.
+- **Endless radio.** Playing a track seeds a ~50-track YouTube Music radio and
+  keeps the queue full, so the music never stops.
+- **Paste a link.** Paste a YouTube or YouTube Music URL (with or without `@`):
+  a bare track seeds its radio, a `?list=` link queues the whole playlist.
+- **Saved playlists.** Played playlists appear as a chip row under the
+  now-playing card and replay instantly with no network round-trip.
+- **Real transport.** `mpv-mpris` publishes the stream as a normal MPRIS player,
+  so the media keys, Next/Prev, shuffle, and the seekbar all work, and playing a
+  YouTube track pauses your other players so audio never stacks.
+
+<Note>
+RyoTunes needs `yt-dlp`, `mpv` (with `mpv-mpris`), and `curl`, all in the base
+set. Signing into a default browser lifts yt-dlp's rate limit. This is streaming
+only; there is no library sync.
+</Note>
+
+## Screenshots
+
+Press `Mod + S` to open **Ryoshot**, the screenshot and annotation tool.
+
+<Steps>
+  <Step title="Capture">
+    Choose full screen, a region, or a single window.
+  </Step>
+  <Step title="Annotate">
+    Draw with the rectangle, line, arrow, pen, marker, blur, or text tools, with
+    undo and redo.
+  </Step>
+  <Step title="Save">
+    The PNG is written to `~/Pictures/Screenshots`.
+  </Step>
+</Steps>
+
+## Clipboard, voice, and the visualizer
+
+| Tool | Key | What |
+| --- | --- | --- |
+| Clipboard history | `Mod + V` | Recent copies (via `cliphist`), pick to paste or delete |
+| Voice dictation | `Mod + Grave` | Tap to start Handy speech-to-text, tap again to stop |
+| Audio visualizer | `Mod + M` | Toggle the desktop audio spectrum (via `cava`) |
+
+Voice dictation types the transcription straight into the focused app
+(`wtype`). Press `Mod + Shift + M` to raise the visualizer over your windows
+instead of leaving it on the wallpaper. Clipboard history is also reachable in
+the launcher with the `;` prefix.
+
+## Shell and CLI tools
+
+The default login shell is **fish**, with the **Starship** prompt. The terminal
+comes stocked with modern replacements for the classic tools.
+
+| Tool | Replaces / does |
+| --- | --- |
+| `lazygit` | Full-screen Git TUI |
+| `zoxide` | Smarter `cd` that learns your directories |
+| `fzf` | Fuzzy finder for files, history, and anything piped in |
+| `ripgrep` (`rg`) | Fast recursive search |
+| `fd` | Fast, friendly file find |
+| `bat` | `cat` with syntax highlighting and paging |
+| `eza` | `ls` with colors, icons, and a tree view |
+| `btop` | Resource monitor |
+| `fastfetch` | System info banner |
+
+## Extra helpers
+
+Smaller tools power specific features, and they are on `PATH` if you want them
+directly.
+
+| Tool | Purpose |
+| --- | --- |
+| `qalc` (libqalculate) | Calculator engine behind the launcher's `=` |
+| `songrec` | Recognize the music that is playing |
+| `tesseract` | OCR, pull text out of a screenshot |
+| `zbar` | Scan a QR code on screen |
+| `gpu-screen-recorder`, `wf-recorder` | Screen recording (the second is the multi-GPU fallback) |
+| `hyprsunset` | Night light, warm the screen color temperature |
+
+<Tip>
+Need software that isn't here? [Extras](/docs/extras) installs curated bundles
+(gaming, dev, office, security, and more) in one click, and the launcher's
+package provider (`install <name>`) grabs anything from the repos.
+</Tip>
+
+Colors follow your wallpaper across every one of these tools; see
+[Themes & wallpapers](/docs/theming).
+
+<CardGroup cols={2}>
+  <Card title="Keybindings" icon="keyboard" href="/docs/keybindings">
+    The complete, authoritative list of every shipped bind.
+  </Card>
+  <Card title="Extras" icon="box-open" href="/docs/extras">
+    Add whole software bundles: gaming, dev, office, security.
+  </Card>
+  <Card title="Themes & wallpapers" icon="palette" href="/docs/theming">
+    How every app recolors to your wallpaper.
+  </Card>
+  <Card title="Rashin" icon="robot" href="/docs/rashin">
+    The optional local AI agent behind the `\` launcher lane.
+  </Card>
+</CardGroup>

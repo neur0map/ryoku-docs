@@ -1,0 +1,133 @@
+---
+title: Themes & wallpapers
+description: How Ryoku recolors the whole desktop from your wallpaper, the shipped themes, and how to switch.
+icon: palette
+---
+
+Ryoku has one coherent look, and it takes its color from your wallpaper. Set a
+wallpaper and the terminal, the compositor, and the shell all recolor to match,
+with no per-app theming and no mismatched palettes. Prefer a fixed palette? Pick
+one of the shipped themes and lock to it.
+
+## How colors work
+
+Ryoku uses **wallust** to read your current wallpaper, extract a 16-color
+palette from it, and write that palette into every surface at once.
+
+| Target | Generated file |
+| --- | --- |
+| Kitty (terminal) | `~/.config/kitty/current-theme.conf` |
+| Hyprland (compositor) | `~/.cache/wallust/hypr-colors.lua` |
+| The shell (pill, launcher, widgets) | `~/.cache/wallust/colors.json` |
+
+That palette is either **followed** or **locked**, controlled by the *Match
+wallpaper* toggle:
+
+- **Follow** (default) — colors regenerate from each new wallpaper. Change the
+  wallpaper, change the whole system's colors.
+- **Lock** — colors come from the selected theme's fixed palette and stay put no
+  matter which wallpaper you set.
+
+The toggle lives in **Ryoku Settings → Shell → Match wallpaper** (open Settings
+with `Mod + ,`). Theme selection itself is in the **Appearance** panel.
+
+<Tip>
+Only the *accent* follows the wallpaper. The brand vermillion, the red-sun
+motif, and the 力 mark stay fixed on every wallpaper, so a sun is always a sun.
+</Tip>
+
+## Full-system themes
+
+A theme is more than colors: each one tunes rounding, blur, gaps, shadows,
+opacity, and motion into a complete look. Some carry a fixed palette; others
+stay wallpaper-driven and only reshape the motion and decoration.
+
+| Theme | Vibe | Palette |
+| --- | --- | --- |
+| **Ryoku Default** (`default`) | Warm, glassy, the shipped look | Wallpaper-driven |
+| **Tokyo Night** (`tokyo-night`) | Deep blue-purple night, sharp and snappy | Fixed |
+| **Catppuccin** (`catppuccin`) | Mocha: soft pastel mauve on dark | Fixed |
+| **Gruvbox** (`gruvbox`) | Warm retro earth tones, high-contrast | Fixed |
+| **Nord** (`nord`) | Cool arctic minimalism, frost blues | Fixed |
+| **Rosé Pine** (`rose-pine`) | Muted, elegant, a little romantic | Fixed |
+| **Aqua** (`aqua`) | Apple-style liquid glass: big rounding, heavy frost | Fixed |
+| **Washi** (`washi`) | Vermilion on dark washi paper, snappy | Fixed |
+| **Soft Color** (`soft_color`) | Pastel peach on slate-blue, dreamy and blurred | Fixed |
+| **Mountains** (`mountains`) | Desaturated stone, moss, and bone | Fixed |
+| **Glass** (`glass`) | Heavy frosted blur, translucent windows | Wallpaper-driven |
+| **Drift** (`drift`) | Airy: wide gaps, soft blur, unhurried motion | Wallpaper-driven |
+| **CRT** (`crt`) | Cyan phosphor on near-black, retro terminal | Fixed |
+| **Cassette** (`cassette`) | Flat sepia, sharp corners, ink on bone | Fixed |
+| **Compact** (`compact`) | Dense and tight, minimal rounding | Wallpaper-driven |
+
+`default` is Ryoku Default, the warm, wallpaper-driven look you get out of the
+box.
+
+## Switching a theme
+
+<Steps>
+  <Step title="Open Ryoku Settings">
+    Press `Mod + ,` to open the Hub.
+  </Step>
+  <Step title="Go to Appearance">
+    Select the **Appearance** panel and pick a theme. Changes preview live.
+  </Step>
+  <Step title="Decide on colors">
+    A fixed-palette theme locks its own colors. To keep colors following your
+    wallpaper instead, leave *Match wallpaper* on in the **Shell** panel.
+  </Step>
+</Steps>
+
+## Wallpapers
+
+Wallpapers live in `~/Pictures/Wallpapers`, and a shipped set is installed for
+you.
+
+| Key | Action |
+| --- | --- |
+| `Mod + W` | Next / random wallpaper, with an animated transition |
+| `Mod + C` | Wallpaper quick picker |
+
+With *Match wallpaper* on, every wallpaper change recolors the whole desktop.
+
+## Ryowalls
+
+Press `Mod + Shift + W` for **Ryowalls**, an in-desktop browser for
+[wallhaven.cc](https://wallhaven.cc).
+
+<Steps>
+  <Step title="Browse">
+    Search wallhaven from inside Ryoku.
+  </Step>
+  <Step title="Preview live">
+    Highlight a wallpaper and the whole rice previews live, colors and all.
+  </Step>
+  <Step title="Apply">
+    Apply it, and Ryoku saves a per-image color tune so it looks right every
+    time you return to it.
+  </Step>
+</Steps>
+
+## The fixed brand
+
+Wallust moves the accent, but a few things never move. These are the brand
+constants, independent of any wallpaper or theme.
+
+| Constant | Value |
+| --- | --- |
+| Vermillion accent (the red sun) | `#e2342a` |
+| Kintsugi gold | `#d9a441` |
+| Brand mark | 力 (the kanji seal) |
+
+Fonts are fixed too: **Fraunces** for display headlines, **Space Grotesk** for
+UI, **JetBrains Mono Nerd Font** for code and labels, and **Noto** as the
+fallback (including CJK). The cursor is **Bibata**.
+
+<CardGroup cols={2}>
+  <Card title="Ryoku Settings" icon="sliders" href="/docs/settings">
+    The Hub: Appearance, Shell, and every other panel.
+  </Card>
+  <Card title="Customize" icon="wrench" href="/docs/customize">
+    Go deeper: user overrides, config files, and dotfiles.
+  </Card>
+</CardGroup>

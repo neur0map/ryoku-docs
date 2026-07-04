@@ -10,6 +10,11 @@ archinstall in the loop, no GUI configurator, no hidden JSON: just plain bash
 running the stages in order, so you can read the whole thing top to bottom and
 follow exactly what happens to the disk.
 
+<Info>
+Already running Arch? You can convert your machine in place instead of
+reinstalling — see [Convert an existing Arch machine](/docs/convert).
+</Info>
+
 ## 1. Get an ISO
 
 Public ISO availability is tracked on [ryoku.dev](https://ryoku.dev). You can
@@ -42,6 +47,10 @@ gpg --verify ryoku-<date>-x86_64.iso.sig ryoku-<date>-x86_64.iso
 
 [Release pipeline](/docs/release-pipeline) has the full walkthrough of what
 good output looks like and the offline-keyring path.
+
+See [Verifying downloads](/docs/security) for the signing key, checksums, and
+what a good check looks like — the same verification also guards the
+[in-place converter](/docs/convert).
 
 ## 3. Try in a VM first (optional)
 

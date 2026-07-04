@@ -1,6 +1,7 @@
 ---
 title: First boot
 description: What you see when you log in to Ryoku for the first time, and the four keys worth pressing first.
+icon: power-off
 ---
 
 After install, the machine reboots into SDDM. Pick the **Ryoku (Hyprland)**
@@ -28,10 +29,9 @@ session and log in.
   <Card title="Open the launcher" icon="search">
     `Mod + Space` opens the app launcher. Type to filter, Enter to launch.
   </Card>
-  <Card title="Open Ryoku Settings" icon="settings">
-    `Mod + ,` opens the Hub: appearance, displays, input, keybinds,
-    lockscreen, animations, window / layer rules, autostart, the shell, and
-    the desktop widgets.
+  <Card title="Open Ryoku Settings" icon="sliders" href="/docs/settings">
+    `Mod + ,` opens the Hub, the live control center for the whole desktop.
+    See [Settings](/docs/settings).
   </Card>
   <Card title="See the keybind legend" icon="keyboard">
     `Mod + K` opens the Hub on its live shortcut legend. It is the same data
@@ -42,12 +42,13 @@ session and log in.
 
 ## Next steps
 
-- [Desktop tour](/docs/tour): the shell surfaces, Hyprland workspaces, and
-  where things live.
+- [Navigation](/docs/navigation): the keyboard workflow — open, focus, move,
+  and tile windows across workspaces.
+- [Desktop tour](/docs/tour): the shell surfaces and where things live.
 - [Keybindings](/docs/keybindings): the full shipped reference, grouped by
   purpose.
-- [Customize](/docs/customize): wallpapers, themes, your own
-  `~/.config/hypr/user.lua`, and the Settings panels.
+- [Customize](/docs/customize): wallpapers, themes, and your own
+  `~/.config/hypr/user.lua`.
 
 ## If nothing draws
 

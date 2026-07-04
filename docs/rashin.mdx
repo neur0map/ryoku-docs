@@ -1,0 +1,146 @@
+---
+title: Rashin
+description: Ryoku's optional, local, off-by-default agent OS — a machine-generated knowledge vault, a localhost dashboard, and one-click agent setup.
+icon: robot
+---
+
+Rashin (羅針, "compass needle") is Ryoku's optional agent OS. When you turn it
+on, it builds and maintains a map of your machine — a knowledge vault — that any
+coding agent can read instead of burning time rediscovering your system. It ships
+with the desktop but stays inert until you enable it, and everything it does
+stays on your machine.
+
+Three pieces make it up:
+
+- A **knowledge vault** of generated markdown maps (your hardware, your desktop
+  config, your packages, your own changes) that agents read and write.
+- A **local dashboard** on `127.0.0.1` with vitals, the vault, and a chat surface.
+- **One-click setup** for Hermes, the resident agent, wired to the vault.
+
+<Info>
+Optional means not running, not absent. The `ryoku-rashin` binary is installed
+with the desktop but does nothing until you flip the gate in Settings. Nothing
+indexes, listens, or wires before then.
+</Info>
+
+## Turn it on
+
+Rashin is off by default. Enable it from the Hub:
+
+<Steps>
+  <Step title="Open the Rashin panel">
+    Press `Mod + ,` to open [Ryoku Settings](/docs/settings), then go to
+    **Advanced > Rashin**.
+  </Step>
+  <Step title="Run one-click setup">
+    The setup actuator runs in a floating terminal (never with `sudo`). It
+    installs Hermes if it is not already present, runs Hermes's onboarding so you
+    pick your own provider and model right there, wires the vault so agents read
+    it, and enables the daemon.
+  </Step>
+  <Step title="Open the dashboard">
+    When setup finishes it opens the dashboard at
+    [http://127.0.0.1:3600](http://127.0.0.1:3600). From now on the daemon starts
+    at login and keeps the vault current.
+  </Step>
+</Steps>
+
+<Note>
+If you already run Hermes, setup treats it as sacred: it skips install and
+onboarding entirely and only wires the vault, so your provider and model choices
+are untouched.
+</Note>
+
+## The vault
+
+The vault is the shared knowledge base every agent reads and writes, at
+`~/.local/share/ryoku/rashin/`. Ryoku generates the maps; you and your agents own
+the notes.
+
+| File | What it holds |
+|---|---|
+| `AGENTS.md` | The entry contract agents read first (`CLAUDE.md` is a symlink to it) |
+| `system.md` | Hardware, kernel, drivers, displays |
+| `desktop.md` | The Ryoku map: where every config lives, what owns it, how to reload it |
+| `packages.md` | Package sets, versions, and update state |
+| `user.md` | Where your config diverges from the shipped defaults |
+| `habits.md` | Your directories, tool stack, and shell rhythms |
+| `memory/` and `journal/` | Agent-writable notes and dated entries |
+
+The generated files stay current on their own: Rashin reindexes on daemon start,
+on a timer, from the dashboard's reindex button, and after every `ryoku update`,
+so agents always see the system as it is now. Only the generated content is
+rewritten — anything you or an agent adds around it survives.
+
+<Tip>
+Because the vault is plain markdown, it works with the coding agents you already
+use. When Rashin wires an agent (Claude Code, Codex, opencode, Oh My Pi, Hermes),
+it points that agent at `AGENTS.md` so it reads the map before guessing paths.
+</Tip>
+
+## The dashboard
+
+The dashboard serves only on `http://127.0.0.1:3600` — localhost, single user, no
+remote listener. It is a self-contained page with a distinct Japanese
+retro-poster look, deliberately separate from the desktop theme.
+
+| Panel | What it shows |
+|---|---|
+| Overview | Live vitals, daemon and Hermes state, code-intelligence stats |
+| Vault | Browse and read the generated maps; reindex on demand |
+| Memory | Agent memory, a graph of notes, and session history |
+| Skills | Every Hermes skill and the enabled toolbelt |
+| Agents | Detected coding CLIs and their wiring state |
+| Chat | The full Hermes conversation, with images, model picker, and approvals |
+
+## Quick asks
+
+You do not have to open the dashboard to ask a question. Two surfaces share the
+same brain — the daemon, the vault, and your Hermes connection:
+
+<Tabs>
+  <Tab title="Launcher">
+    Open the launcher with `Mod + Space`, type `\`, then your question. The
+    answer streams back with action chips: open a file, jump to a directory,
+    open a link, or copy a command or color. Type `\resume` to recall a recent
+    ask instantly, with no model call.
+  </Tab>
+  <Tab title="Terminal">
+    Run `rashin <what you want>` in the terminal. It answers from the same brain
+    and drops a ready-to-run command on your fish prompt — you press Enter to run
+    it. `rashin` never runs anything itself; the buffer is the confirmation. Every
+    proposed command also carries a danger tier (read / write / system / danger).
+  </Tab>
+</Tabs>
+
+Both lanes write to one shared history, so an ask started in the launcher can be
+continued in the dashboard, and `\resume` in the launcher and `rashin --resume`
+in the terminal see the same conversation.
+
+## Privacy
+
+Rashin is built to keep everything local:
+
+- **Loopback only.** The daemon binds `127.0.0.1`, and WebSocket connections are
+  rejected unless their origin is localhost. No listener leaves your machine.
+- **Nothing leaves the machine on its own.** The vault is markdown on your disk;
+  Rashin does not phone home.
+- **You bring your own model.** Rashin bundles no LLM. Hermes uses the provider
+  and model you choose during setup, so where prompts go is your choice.
+- **Off until you say so.** The gate in `~/.config/ryoku/rashin.json` is the
+  single source of truth; a disabled Rashin does nothing even if its service
+  fires.
+
+For how Rashin fits Ryoku's wider security posture — signed releases, snapshots,
+and disk encryption — see [Security](/docs/security).
+
+## See also
+
+<CardGroup cols={2}>
+  <Card title="Settings" icon="sliders" href="/docs/settings">
+    The Advanced > Rashin panel and the rest of the Hub.
+  </Card>
+  <Card title="Security" icon="shield-halved" href="/docs/security">
+    How Ryoku stays trustworthy, including local-only Rashin.
+  </Card>
+</CardGroup>

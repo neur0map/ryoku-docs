@@ -1,6 +1,7 @@
 ---
 title: Updates
 description: How Ryoku updates itself, wraps each run in a snapper snapshot when configured, and rolls back when something breaks.
+icon: rotate
 ---
 
 Ryoku updates through one command: `ryoku update`. When the system meets the
@@ -9,6 +10,10 @@ current from the signed `[ryoku]` repo, re-lays the base config with
 `ryoku materialize`, and reloads the shell. There is one channel (`main`);
 there is no channel switching, no git-pull update, and no ordered migration
 ledger.
+
+This page covers the update and snapshot model. The full `ryoku` command
+reference — every flag for `update`, `status`, `snapshots`, `rollback`,
+`doctor`, and `recovery` — lives in [CLI](/docs/cli).
 
 ## What `ryoku update` does
 
@@ -34,11 +39,11 @@ ryoku update
 `ryoku update` also calls `ryoku doctor` itself, so stateful drift gets
 reconciled as part of the same run.
 
-<Callout type="info">
+<Info>
 On a maintainer's dev checkout the same command fetches the channel branch,
 fast-forwards, and redeploys with `ryoku/shell/deploy.sh`. The auto-detection
 is automatic; you do not pick a mode.
-</Callout>
+</Info>
 
 ## Status
 
@@ -97,31 +102,18 @@ This hands off to `sudo snapper rollback`.
 
 ## Self-healing: `ryoku doctor`
 
-`ryoku doctor` runs idempotent reconcilers for the stateful drift that
-packages and config cannot express. A healthy machine is quiet. It runs inside
-`ryoku update`; you usually do not call it by hand.
-
-Useful flags:
-
-- `ryoku doctor --check` (or `-n`) shows findings without changing anything.
-- `ryoku doctor --report [file]` writes a shareable text report bundled with
-  system state (btrfs, swap, failed units, recent journal errors, pacman
-  state, the ryoku channel state, display and backlight). It contains no
-  passwords or keys.
-- `ryoku doctor --explain` sends that same report to a cloud model and prints
-  its root-cause analysis and fix steps. Opt-in, advisory, read-only. It uses
-  your own key: nothing is sent unless you set one (`RYOKU_AI_KEY`,
-  `RYOKU_AI_URL`, `RYOKU_AI_MODEL`, or write the key to
-  `~/.config/ryoku/ai-key`). Defaults target Groq; any OpenAI-compatible
-  endpoint works.
+`ryoku doctor` runs idempotent reconcilers for the stateful drift that packages
+and config cannot express. A healthy machine is quiet. It runs inside every
+`ryoku update`, so you rarely call it by hand; `ryoku doctor --check` previews
+what it would change without touching anything.
 
 ```bash
 ryoku doctor --check
-ryoku doctor --report
-ryoku doctor --explain
 ```
 
-The latest report is kept at `~/.local/state/ryoku/doctor-report.txt`.
+For the full reconciler set and every doctor flag — `--check`, `--report`, and the opt-in, read-only
+`--explain` — see [CLI](/docs/cli). To lean on doctor while chasing a specific
+problem, see [Troubleshoot](/docs/troubleshoot).
 
 ## Recovery
 
@@ -152,18 +144,17 @@ keeps the machine current.
 `ryoku update` upgrades installed packages. It does not pacstrap newly listed
 ones, so a newly added base package reaches only fresh installs.
 
+Because every `[ryoku]` package is signed and pacman verifies it on install, an
+update only ever applies packages from the real release key. See
+[Security](/docs/security) for how to verify releases yourself.
+
 ## State the CLI keeps
 
-Under `~/.local/state/ryoku/`:
-
-- `repo` the checkout root the last deploy recorded (dev machines only).
-- `deployed` the commit the last deploy laid down (dev machines only).
-- `materialized` the manifest of Ryoku-owned files, so the next `materialize`
-  can prune cleanly.
-- `doctor-report.txt` the latest diagnostic report.
-
-Runtime: `$XDG_RUNTIME_DIR/ryoku-update.json` is the update island's progress
-file, written by `update`.
+The CLI keeps its state under `~/.local/state/ryoku/` — deploy pointers on dev
+machines, the `materialized` manifest of Ryoku-owned files, and the latest
+`doctor-report.txt`. During a run it publishes live progress to
+`$XDG_RUNTIME_DIR/ryoku-update.json` for the pill's update island. See
+[CLI](/docs/cli) for the full list.
 
 ## See also
 
@@ -171,3 +162,6 @@ file, written by `update`.
   island and Ryoku Settings.
 - [Troubleshoot](/docs/troubleshoot) when an update goes sideways.
 - [Customize](/docs/customize) for the override files updates leave alone.
+- [CLI](/docs/cli) for the full `ryoku` command reference.
+- [Security](/docs/security) for signed releases and verifying downloads.
+- [FAQ](/docs/faq) for quick answers on updating and rolling back.

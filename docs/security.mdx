@@ -1,0 +1,101 @@
+---
+title: Security
+description: How Ryoku stays trustworthy — signed releases you can verify, snapshots that undo a bad update, optional disk encryption, and a strictly local agent.
+icon: shield-halved
+---
+
+Ryoku's security model is boring on purpose: everything you install is signed and
+verifiable, every update is reversible, and nothing on the machine talks to the
+network unless you tell it to. This page collects the guarantees and the exact
+commands to check them.
+
+## Signed releases
+
+Every Ryoku ISO and every package in the `[ryoku]` repo is signed by the release
+identity `Ryoku Releases <releases@ryoku.dev>`. The canonical public key lives in
+the repo at
+[`keys/ryoku-release-key.pub.asc`](https://github.com/neur0map/ryoku-arch/blob/main/keys/ryoku-release-key.pub.asc),
+bound to git history, and ships alongside each ISO.
+
+The key fingerprint to verify against is:
+
+```
+EB6D3C0F55A7B3CABA6B2838847B274F025DD6E3
+```
+
+<Warning>
+Always compare the imported key's fingerprint against the value above before you
+trust it. A signature only means something once you have confirmed the key that
+made it is the real release key.
+</Warning>
+
+## Verify your download
+
+Import the key, confirm its fingerprint, then verify the ISO against its detached
+signature and its checksum:
+
+```bash
+# Import the release key
+curl -sSL https://raw.githubusercontent.com/neur0map/ryoku-arch/main/keys/ryoku-release-key.pub.asc \
+  | gpg --import
+
+# Show the fingerprint and compare it against the one above
+gpg --fingerprint releases@ryoku.dev
+
+# Verify the ISO against its detached signature and its checksum
+gpg --verify ryoku-<date>-x86_64.iso.sig ryoku-<date>-x86_64.iso
+sha256sum -c ryoku-<date>-x86_64.iso.sha256
+```
+
+`gpg --verify` must report a good signature from the release identity, and
+`sha256sum -c` must print `OK`. If either fails, do not boot the image. The full
+walkthrough of what good output looks like is in [Install](/docs/install).
+
+## Repo trust
+
+The installer adds the `[ryoku]` repo and imports the release key from the
+`ryoku-keyring` package, which ships the key material into pacman's keyring. From
+then on pacman verifies the signature on every `[ryoku]` package it installs or
+upgrades, so `ryoku update` only ever applies signed packages. You never have to
+re-import the key by hand. See [Updates](/docs/updates) for where the packages
+come from.
+
+## Snapshots as a safety net
+
+On a standard install (a btrfs root with snapper configured, which the ISO sets
+up) every `ryoku update` is wrapped in a pre/post snapshot pair. A bad update is
+never a dead end: roll back with `ryoku rollback`, and if the desktop will not
+come up, the same snapshots are selectable straight from the Limine boot menu.
+The full model — prerequisites, self-healing, and recovery — is in
+[Updates](/docs/updates).
+
+## Disk encryption
+
+The installer offers optional LUKS full-disk encryption. Choose it on the disk
+step during the guided install and the backend sets up an encrypted root; the
+rest of the install proceeds normally. It is opt-in, so decide when you install.
+See [Install](/docs/install).
+
+## Local-only Rashin
+
+Ryoku's agent OS, Rashin, is off by default and never leaves your machine when
+you do enable it: its daemon binds `127.0.0.1` only, rejects non-localhost
+WebSocket origins, and bundles no model of its own — you supply the provider. The
+knowledge vault it builds is plain markdown on your disk. See
+[Rashin](/docs/rashin) for the full picture.
+
+<Info>
+Security-sensitive issues follow the project's `SECURITY.md`, not the public
+issue tracker.
+</Info>
+
+## See also
+
+<CardGroup cols={2}>
+  <Card title="Install" icon="download" href="/docs/install">
+    Verify and boot a signed ISO, and choose disk encryption.
+  </Card>
+  <Card title="Updates" icon="rotate" href="/docs/updates">
+    Signed packages, snapshots, and rollback.
+  </Card>
+</CardGroup>

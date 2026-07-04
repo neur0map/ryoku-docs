@@ -55,45 +55,62 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Use Ryoku",
+        "tab": "Manual",
         "groups": [
-          {
-            "group": "Welcome",
-            "pages": [
-              "index"
-            ]
-          },
           {
             "group": "Get started",
             "pages": [
+              "index",
               "docs/install",
-              "docs/first-boot",
-              "docs/tour"
+              "docs/convert",
+              "docs/first-boot"
             ]
           },
           {
-            "group": "Daily use",
+            "group": "The desktop",
             "pages": [
+              "docs/tour",
+              "docs/navigation",
               "docs/keybindings",
-              "docs/updates"
+              "docs/settings"
             ]
           },
           {
-            "group": "Plugins",
+            "group": "Apps & theming",
             "pages": [
+              "docs/apps",
+              "docs/theming"
+            ]
+          },
+          {
+            "group": "Extras & plugins",
+            "pages": [
+              "docs/extras",
               "docs/plugins"
             ]
           },
           {
-            "group": "Customize",
+            "group": "Control & config",
             "pages": [
-              "docs/customize"
+              "docs/cli",
+              "docs/customize",
+              "docs/hardware",
+              "docs/kernels"
             ]
           },
           {
-            "group": "Help",
+            "group": "Maintenance & help",
             "pages": [
-              "docs/troubleshoot"
+              "docs/updates",
+              "docs/troubleshoot",
+              "docs/faq"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "docs/rashin",
+              "docs/security"
             ]
           }
         ]

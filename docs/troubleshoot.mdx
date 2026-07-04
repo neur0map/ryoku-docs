@@ -1,12 +1,16 @@
 ---
 title: Troubleshoot
 description: Where logs live, how to self-heal with ryoku doctor, how to recover from a bad update, and how to file a useful bug.
+icon: wrench
 ---
 
 When something goes wrong, work in this order: read the logs, run
 `ryoku doctor`, roll back a bad update with `ryoku rollback`, and only then
 file a bug. The same `ryoku` CLI that updates the machine also surfaces every
 diagnostic you need.
+
+This page is the problem-first path through the `ryoku` CLI; the
+[CLI](/docs/cli) reference documents every command it uses in full.
 
 ## Where logs live
 
@@ -53,27 +57,16 @@ The report is written to `~/.local/state/ryoku/doctor-report.txt`; it
 contains no passwords or keys.
 
 When you want it to reason rather than match rules, `ryoku doctor --explain`
-sends that same report to a cloud model and prints its root-cause analysis
-and fix steps. It is opt-in, advisory, and read-only: it never runs anything,
-so a wrong answer can only mislead. You configure your own key:
+sends that same report to a cloud model for a root-cause analysis and fix
+steps. It is opt-in, advisory, and read-only — it never runs anything, so a
+wrong answer can only mislead — and it uses your own key. See [CLI](/docs/cli)
+for configuring the key and the provider endpoint.
 
-```bash
-# Any OpenAI-compatible endpoint; Groq is the default.
-export RYOKU_AI_KEY=sk-...
-ryoku doctor --explain
-```
-
-You can also write the key to `~/.config/ryoku/ai-key` and override
-`RYOKU_AI_URL` and `RYOKU_AI_MODEL` to point at OpenRouter or any other
-provider.
-
-The current reconcilers cover swap kept out of snapshots, snapper config
-consistency, the stale pacman lock, the ryoku package channel and keyring,
-desktop session components, Hyprland config integrity (it revalidates and
-repairs the generated `monitors.lua` and `gpu.lua` drop-ins so a corrupt one
-cannot strand the desktop in emergency mode), the shell daemon, failed
-services, btrfs device health, display backlight, pending `.pacnew` files,
-and orphaned packages.
+The reconciler set is broad — the stateful drift a Ryoku machine accumulates
+across snapshots, packages, session components, and the generated Hyprland
+config — and it grows over time, so the current list lives in
+[CLI](/docs/cli). When something specific breaks, `ryoku doctor --check` tells
+you whether a reconciler already handles it.
 
 ## A read-only state check
 
@@ -247,3 +240,5 @@ tracker.
   survive every run.
 - [Keybindings](/docs/keybindings) for the shortcuts that open Settings,
   reload the shell, and pick a wallpaper.
+- [CLI](/docs/cli) for the full `ryoku` command reference.
+- [FAQ](/docs/faq) for quick answers to common problems.
