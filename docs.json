@@ -2,6 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "Ryoku",
+  "description": "Ryoku is a hand-built Arch Linux distribution: a cohesive Hyprland desktop, a guided installer, and a reproducible single-source system. An opinionated, pre-riced daily driver and Omarchy alternative on Arch + Hyprland, with the ryoku CLI, wallpaper-driven theming, and an opt-in CachyOS kernel.",
   "colors": {
     "primary": "#e2342a",
     "light": "#ef5b50",
@@ -34,9 +35,20 @@
     "dark": "/assets/brand/dark.png"
   },
   "seo": {
+    "indexing": "all",
     "metatags": {
-      "canonical": "https://docs.ryoku.dev"
+      "canonical": "https://docs.ryoku.dev",
+      "description": "Ryoku documentation: install, convert, configure, and run the Ryoku Arch Linux Hyprland desktop, an Omarchy alternative.",
+      "keywords": "Ryoku, Ryoku Linux, Arch Linux, Hyprland, Omarchy, Omarchy alternative, Quickshell, riced Arch desktop, ryoku CLI, CachyOS, Wayland",
+      "og:site_name": "Ryoku Docs",
+      "og:title": "Ryoku documentation",
+      "og:image": "https://ryoku.dev/social-card.jpg",
+      "twitter:card": "summary_large_image",
+      "twitter:image": "https://ryoku.dev/social-card.jpg"
     }
+  },
+  "metadata": {
+    "timestamp": true
   },
   "navbar": {
     "links": [
