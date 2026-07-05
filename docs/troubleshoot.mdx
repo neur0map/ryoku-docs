@@ -214,6 +214,16 @@ one of the offered clean-divisor scales.
 - Blur and shadows: **Ryoku Settings > Appearance > Decoration** tones them
   down for integrated graphics.
 
+## The installer won't advance past "Disk layout"
+
+Installing alongside Windows and pressing **Tab** on the **Disk layout** step
+does nothing? The alongside layout is blocked, and the screen shows a red `⚠`
+with the reason — almost always no unallocated free space (Windows fills the
+disk) or no EFI partition to reuse. Ryoku never resizes Windows, so you make
+room first: shrink the Windows partition, then reboot into the installer. The
+full walkthrough is in [Dual-boot with Windows](/docs/dual-boot). On a dedicated
+drive, press `esc` and choose **Erase whole disk** instead.
+
 ## Filing a useful bug
 
 Open an issue at

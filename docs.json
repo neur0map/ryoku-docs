@@ -74,6 +74,7 @@
             "pages": [
               "index",
               "docs/install",
+              "docs/dual-boot",
               "docs/convert",
               "docs/first-boot"
             ]

@@ -99,6 +99,14 @@ covers it in full — start here, then follow the link when you want the detail.
     is fully reversible with `ryoku-shell-install --uninstall`. See
     [Convert](/docs/convert).
   </Accordion>
+  <Accordion title="Can I dual-boot Ryoku alongside Windows?">
+    Yes, on a single disk or a dedicated one. Ryoku reuses your existing EFI
+    partition and installs into unallocated free space — it never resizes
+    Windows, so you shrink the Windows partition first (Windows Disk Management)
+    to make room, then pick **Install alongside Windows** in the installer. If
+    the **Disk layout** step will not let you press Tab, there is no free space
+    or no EFI partition yet. Full steps: [Dual-boot with Windows](/docs/dual-boot).
+  </Accordion>
   <Accordion title="Does Rashin send my data anywhere?">
     No. Rashin is optional and off by default; when you do enable it, the daemon
     binds `127.0.0.1` only and nothing leaves the machine. The knowledge vault is
