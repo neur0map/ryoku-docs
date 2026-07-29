@@ -48,6 +48,8 @@ path. A few commands belong to only one world; that is called out below.
 | `deploy` | Build and lay the desktop from a checkout | dev checkout | a maintainer |
 | `recovery` | Last resort: reset to `main` and redeploy | both | you, when broken |
 | `doctor` | Run idempotent reconcilers for stateful drift | both | you, the updater |
+| `keyboard` | The layout on the desktop, greeter, console, and boot prompt | both | you, the Hub |
+| `keyring` | How the login keyring unlocks at sign-in | both | you, the Hub |
 
 ## Everyday commands
 
@@ -208,6 +210,25 @@ ryoku doctor --explain
 
 For OpenRouter's free models, override the URL and model (see
 [Environment and state](#environment-and-state) below).
+
+## One layout everywhere: `ryoku keyboard`
+
+A keyboard layout has to land in four places, and only one of them is the
+desktop: Hyprland's config, the X11 file the SDDM greeter reads,
+`/etc/vconsole.conf` for the TTYs, and a copy of that file baked into the boot
+image, which is what the disk passphrase prompt uses. The last one is the trap:
+mkinitcpio copies the keymap in at build time, so editing the file later, even
+through `localectl`, never reaches the passphrase prompt.
+
+| Command | What it does |
+| --- | --- |
+| `keyboard status [--json]` | Each layer's layout, and whether the boot image predates the current keymap. |
+| `keyboard detect` | The layout this machine records, and which source said so. |
+| `keyboard apply [layout]` | Write the greeter and console keymap, then rebuild the boot image so the passphrase prompt follows. `--no-boot` skips the rebuild. |
+
+With no layout argument, `apply` pushes the desktop's own layout out. The
+Displays-page "Apply system-wide" button runs the same command, and `doctor`
+reports the drift with the exact fix.
 
 ## Config lay-down: `ryoku materialize`
 

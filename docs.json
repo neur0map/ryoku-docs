@@ -105,6 +105,7 @@
           {
             "group": "Control & config",
             "pages": [
+              "docs/commands",
               "docs/cli",
               "docs/customize",
               "docs/hardware",

@@ -1,0 +1,120 @@
+---
+title: Terminal commands
+description: Every Ryoku command you can type, from the ones that keep the machine healthy to the small tools behind each keybind.
+icon: square-terminal
+---
+
+Everything Ryoku does from a keybind or a Settings page is also a command, so
+anything the desktop can do, a terminal (or a script of yours) can do too. This
+page is the map. The commands that matter most on a daily driver come first;
+the rest is reference.
+
+## The five that matter
+
+| Command | What it does |
+| --- | --- |
+| `ryoku update` | Snapshot, bring the whole system current, redeploy the desktop, self-heal. The one maintenance command. |
+| `ryoku doctor` | Find and fix stateful drift: a dead shell, a stale keymap, a missing lockscreen, broken portal routing. Safe to run any time. |
+| `ryoku status` | Version, how far behind you are, snapshot count. `--json` for scripts. |
+| `ryoku rollback` | Restore a snapper snapshot; with no id it lists them. The undo for a bad update. |
+| `ryoku recovery` | Last resort: reset to the published release and redeploy, whatever state the box is in. |
+
+If something feels wrong, the order is `ryoku doctor`, then `ryoku update`,
+then `ryoku rollback`. `recovery` is for a machine that cannot help itself.
+
+## `ryoku`, the system CLI
+
+The front door to the machine. Full detail on
+[The ryoku command](/docs/cli); the short version:
+
+| Command | What it does |
+| --- | --- |
+| `update` | Snapshot, then bring the system current and redeploy. |
+| `doctor` | Run the idempotent reconcilers; `--check` reports without touching anything. |
+| `status [--json]` | Version, lag behind the repo, snapshots. |
+| `rollback [id]` / `snapshots` | Restore or list snapper snapshots. |
+| `reload` | Restart the shell and reload Hyprland. |
+| `keyboard status` | What layout the desktop, greeter, console, and boot prompt each use, and whether they agree. |
+| `keyboard detect` | The layout this system records, and where that answer came from. |
+| `keyboard apply [layout]` | Put a layout on the greeter and console AND rebuild the boot image, so the disk passphrase prompt follows. `--no-boot` skips the rebuild. |
+| `keyring status` | How the login keyring unlocks, as JSON with `--json`. |
+| `keyring set <mode>` | `unlock-on-login`, `never-ask`, or `ask`; `--convert` / `--reset` handle a password-protected keyring. |
+| `materialize` | Lay the shipped base config into `~/.config` (the updater runs this for you). |
+| `reset <path>` | Drop a user override and take the shipped file back. |
+| `deploy` | Dev checkouts only: build and lay the desktop from the repo. |
+
+<Note>
+`ryoku keyboard apply` exists because the disk passphrase prompt reads a copy
+of the keymap **baked into the boot image at build time**. Changing the layout
+anywhere else, even with `localectl`, never reaches it; the rebuild does.
+</Note>
+
+## `ryoku-shell`, the desktop's remote control
+
+Every surface the shell draws answers to `ryoku-shell <verb>`, which is what
+the keybinds call. Useful from a terminal when scripting or diagnosing:
+
+| Command | What it does |
+| --- | --- |
+| `ryoku-shell lock` | Lock the session (`lock status` reports `locked` / `unlocked`). |
+| `ryoku-shell launcher` | Toggle the app launcher. |
+| `ryoku-shell overview` | Toggle the workspace overview. |
+| `ryoku-shell menu <id>` | Open a frame menu: `quick-settings`, `wallpaper`, `stash`, `screenshot`, `theme`, `weather`. A `#page` suffix deep-links, e.g. `quick-settings#clipboard`. |
+| `ryoku-shell wallpaper set <file>` | Set a wallpaper, image or video; `wallpaper random` rolls one with a random transition. |
+| `ryoku-shell visualizer` | Toggle the desktop audio visualiser (`visualizer-overlay` raises it above windows). |
+| `ryoku-shell ryolayer` | Toggle the tool overlay. |
+| `ryoku-shell voice` | Toggle Voxtype speech-to-text. |
+| `ryoku-shell hub open` | Open Ryoku Settings. |
+| `ryoku-shell theme <name>` | Apply a colour scheme. |
+| `ryoku-shell audio up / down / mute` | Nudge the default output. |
+| `ryoku-shell brightness <±n>` | Nudge screen brightness. |
+| `ryoku-shell ping` / `status` | Is the daemon alive, and what does it know. |
+| `ryoku-shell quit` | Stop the daemon and its surfaces (systemd restarts it). |
+
+## Desktop helpers
+
+The small tools behind keybinds and Settings pages. All on `$PATH`, all fine
+to call directly:
+
+| Command | What it does |
+| --- | --- |
+| `ryoku-app <role>` | Launch your chosen app for a role: `terminal`, `browser`, `editor`, `files`, `notes`. |
+| `ryoku-workspace focus / move <1..10>` | The desktop-aware workspace switcher the number keys use. |
+| `ryoku-monitor` | Display layouts: `list`, `toggle` (mirror/extend), `save <profile>`, hardware-keyed profiles. |
+| `ryoku-cmd-screenrecord` | Screen recording with the region picker; remembers whether the portal works on your GPU. |
+| `ryoku-cmd-studiorecord` | Studio recording through gpu-screen-recorder, with the cursor track ryomotion's zoom needs. |
+| `ryoku-cmd-brightness <±n>` | Backlight and DDC monitor brightness in one command. |
+| `ryoku-cmd-caffeine start / stop / toggle` | The Keep Awake inhibitor behind the quick settings tile. |
+| `ryoku-cmd-game-mode` | Toggle game mode: no notifications, no idle, panels hidden. |
+| `ryoku-cmd-nightlight` | Toggle the night-light temperature shift. |
+| `ryoku-cmd-color-picker` | Pick a colour from the screen. |
+| `ryoku-cmd-ocr` | Grab a region and copy its text. |
+| `ryoku-cmd-qr-scan` | Grab a region and decode the QR code in it. |
+| `ryoku-cmd-google-lens` | Grab a region and search it with Lens. |
+| `ryoku-cmd-calc` | The launcher's inline calculator, standalone. |
+| `ryoku-cmd-radio` | The lo-fi radio behind the music widget. |
+| `ryoku-cmd-songrec` | Identify the song currently playing. |
+| `ryoku-cmd-discord-compress` | Compress a clip until it fits a Discord upload. |
+| `ryoku-cmd-edit-recording` | Open the newest recording in the ryomotion editor. |
+| `ryoku-cmd-folders` | Rebuild the accent-tinted folder icons after a palette change. |
+| `ryoku-sysinfo` | The system readout the Hub and fastfetch share. |
+
+## Hardware and power
+
+| Command | What it does |
+| --- | --- |
+| `ryoku-gpu` | GPU report and mode switching on hybrid laptops (`ryoku-gpu-detect` probes, `ryoku-gpu-lib32` fixes 32-bit game libs). |
+| `ryoku-clamshell` | The lid-switch daemon: closes to an external display on AC, suspends otherwise. |
+| `ryoku-idle` | The idle policy daemon (dim, lock, sleep timings). |
+| `ryoku-eq` | The system-wide parametric EQ the ryolayer panel drives. |
+| `ryoku-mic` | Microphone processing (noise suppression) toggle. |
+| `ryoku-leds` | Keyboard backlight and LED accent control. |
+| `ryoku-wifi-powersave` | Wi-Fi power-save toggle for flaky adapters. |
+
+## Where these live
+
+The `ryoku` CLI is Go under `ryoku/cli/`; the shell daemon and its verbs are
+`ryoku/shell/ipc/`; the `ryoku-cmd-*` helpers are shell scripts in
+`ryoku/hyprland/scripts/`; hardware tools live in `system/hardware/`. Every
+one of them ships in the packages, so a script that works on your machine
+works on any Ryoku install.
