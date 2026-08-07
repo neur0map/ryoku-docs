@@ -30,7 +30,7 @@ On a packaged install the run is:
 6. Take a snapper post-snapshot.
 
 Throughout, progress is published to `$XDG_RUNTIME_DIR/ryoku-update.json`, which
-the shell's update island reads to show the run in the pill.
+the shell's update island reads to show the run in the bar.
 
 ```bash
 ryoku update
@@ -153,7 +153,7 @@ update only ever applies packages from the real release key. See
 The CLI keeps its state under `~/.local/state/ryoku/` — deploy pointers on dev
 machines, the `materialized` manifest of Ryoku-owned files, and the latest
 `doctor-report.txt`. During a run it publishes live progress to
-`$XDG_RUNTIME_DIR/ryoku-update.json` for the pill's update island. See
+`$XDG_RUNTIME_DIR/ryoku-update.json` for the bar's update island. See
 [CLI](/docs/cli) for the full list.
 
 ## See also

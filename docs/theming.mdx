@@ -11,14 +11,14 @@ one of the shipped themes and lock to it.
 
 ## How colors work
 
-Ryoku uses **wallust** to read your current wallpaper, extract a 16-color
-palette from it, and write that palette into every surface at once.
+Ryoku uses **matugen** to read your current wallpaper, extract a palette from
+it, and write that palette into every surface at once.
 
 | Target | Generated file |
 | --- | --- |
 | Kitty (terminal) | `~/.config/kitty/current-theme.conf` |
-| Hyprland (compositor) | `~/.cache/wallust/hypr-colors.lua` |
-| The shell (pill, launcher, widgets) | `~/.cache/wallust/colors.json` |
+| Hyprland (compositor) | `~/.cache/ryoku/hypr-colors.lua` |
+| The shell (bar, launcher, widgets) | `~/.cache/ryoku/colors.json` |
 
 That palette is either **followed** or **locked**, controlled by the *Match
 wallpaper* toggle:
@@ -85,15 +85,15 @@ you.
 
 | Key | Action |
 | --- | --- |
-| `Mod + W` | Next / random wallpaper, with an animated transition |
-| `Mod + C` | Wallpaper quick picker |
+| `Mod + W` | Wallpaper and theme menu (browse wallpapers, live wallpapers, colour filters, and themes) |
+| `Mod + Shift + W` | Next / random wallpaper, with an animated transition |
 
 With *Match wallpaper* on, every wallpaper change recolors the whole desktop.
 
 ## Ryowalls
 
-Press `Mod + Shift + W` for **Ryowalls**, an in-desktop browser for
-[wallhaven.cc](https://wallhaven.cc).
+The wallpaper and theme menu (`Mod + W`) includes **Ryowalls**, an in-desktop
+browser for [wallhaven.cc](https://wallhaven.cc).
 
 <Steps>
   <Step title="Browse">
@@ -110,7 +110,7 @@ Press `Mod + Shift + W` for **Ryowalls**, an in-desktop browser for
 
 ## The fixed brand
 
-Wallust moves the accent, but a few things never move. These are the brand
+matugen moves the accent, but a few things never move. These are the brand
 constants, independent of any wallpaper or theme.
 
 | Constant | Value |

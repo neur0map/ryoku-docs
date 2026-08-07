@@ -80,9 +80,22 @@ set. Signing into a default browser lifts yt-dlp's rate limit. This is streaming
 only; there is no library sync.
 </Note>
 
+## The desktop music player
+
+The desktop **Music player** widget — one of the wallpaper widgets you can
+enable — follows whichever MPRIS player is active (RyoTunes, Spotify, a browser
+tab, or `mpv`), with artwork, transport, and a seekbar.
+
+For Spotify, its backdrop can play the track's **Spotify Canvas**. The Canvas
+token is only readable inside the Spotify client, so `ryoku doctor` installs
+`spicetify-cli` and wires the bundled `ryoku-canvas` extension for you, and
+Canvas works out of the box. The setup is inert if you do not run Spotify.
+RyoTunes (YouTube Music) stays the default music app; Spotify is a supported
+choice.
+
 ## Screenshots
 
-Press `Mod + S` to open **Ryoshot**, the screenshot and annotation tool.
+Press `Mod + Shift + S` to open **Ryoshot**, the screenshot and annotation tool.
 
 <Steps>
   <Step title="Capture">
@@ -102,7 +115,7 @@ Press `Mod + S` to open **Ryoshot**, the screenshot and annotation tool.
 | Tool | Key | What |
 | --- | --- | --- |
 | Clipboard history | `Mod + V` | Recent copies (via `cliphist`), pick to paste or delete |
-| Voice dictation | `Mod + Grave` | Tap to start Handy speech-to-text, tap again to stop |
+| Voice dictation | `Mod + Grave` | Tap to start Voxtype speech-to-text, tap again to stop |
 | Audio visualizer | `Mod + M` | Toggle the desktop audio spectrum (via `cava`) |
 
 Voice dictation types the transcription straight into the focused app

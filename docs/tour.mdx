@@ -6,7 +6,7 @@ icon: binoculars
 
 Ryoku's desktop is Hyprland + the Ryoku shell. Hyprland composites, handles
 input, and tiles windows; the Ryoku shell — a Quickshell (QML) frontend driven
-by the `ryoku-shell` Go daemon — paints everything else: the frame, the pill,
+by the `ryoku-shell` Go daemon — paints everything else: the frame, the bar,
 the launcher, the overview, the screenshot tool, and the desktop widgets.
 
 This page is a map of those surfaces. For the keyboard workflow — opening,
@@ -17,12 +17,11 @@ configure any of it, see [Settings](/docs/settings).
 
 - **Frame.** The rounded screen border and the popouts that melt into it.
   Always present; it is the desktop's signature chrome.
-- **Pill.** The morphing bar at the top of the screen, and its popouts. It has
-  three island styles set in Ryoku Settings — the fused island, a floating
-  pill, or none — each optionally revealed on hover; the frame stays the same in
-  all three. Notifications, the update island, and the GNOME keyring prompt all
-  grow from the pill, and it swells into the **control deck** (`Mod + D`: stash,
-  tools, and utilities).
+- **Bar.** The top bar and its popouts. **QS Bar**, the default, is a full-width
+  top bar carrying the launcher, workspaces, the clock, media, the tray, and
+  status; **Sumi** is a minimal left rail. Choose and arrange either in Ryoku
+  Settings (Bar Studio). Notifications, the update island, and the GNOME keyring
+  prompt grow from the frame.
 - **Launcher.** The command palette (`Mod + Space`): apps plus quick prefixes —
   `=` calc, `;` clipboard, `?` web, `/` actions, `@` YouTube Music, and `\` a
   Rashin ask — over a zero-query rest card with the solar-arc clock and weather.
@@ -35,17 +34,17 @@ configure any of it, see [Settings](/docs/settings).
   see [Navigation](/docs/navigation).
 - **Ryoshot.** Screenshot capture (full screen, region, or window) and
   annotation — rectangles, arrows, pen, marker, blur, and text, with undo/redo.
-  `Mod + S` opens it; shots save as PNG to `~/Pictures/Screenshots`.
-- **Keyring island.** The GNOME keyring password prompt, grown from the pill
-  centre rather than a floating dialog. System-driven — it appears when an app
+  `Mod + Shift + S` opens it; shots save as PNG to `~/Pictures/Screenshots`.
+- **Keyring prompt.** The GNOME keyring password prompt, grown from the frame
+  rather than a floating dialog. System-driven — it appears when an app
   needs your keyring unlocked.
-- **Desktop widgets.** The clock and weather painted on the wallpaper.
+- **Desktop widgets.** A clock, a calendar, and a music player painted on the wallpaper.
   Right-click to move or configure; enable and lay them out from
   [Settings](/docs/settings) → Desktop Widgets.
 
 The Go daemon (`ryoku-shell`, in `ryoku/shell/ipc/`) is the control plane: it
 supervises the persistent components and decides what is on screen, and the QML
-frontend renders it. Theme tokens flow from the wallpaper through `wallust`, so
+frontend renders it. Theme tokens flow from the wallpaper through `matugen`, so
 picking a new wallpaper repaints every surface without restarting anything.
 
 ## Getting around

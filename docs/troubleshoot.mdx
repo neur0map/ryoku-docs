@@ -16,7 +16,7 @@ This page is the problem-first path through the `ryoku` CLI; the
 
 | What                            | Where                                            |
 | ------------------------------- | ------------------------------------------------ |
-| Ryoku shell (pill, sidebar, panels) | `~/.local/state/ryoku-shell.log` (written when `ryoku` (re)starts the daemon) |
+| Ryoku shell (bar, sidebar, panels) | `~/.local/state/ryoku-shell.log` (written when `ryoku` (re)starts the daemon) |
 | Hyprland (the compositor)       | `hyprctl monitors`, `hyprctl clients`, `dmesg`   |
 | SDDM (the login screen)         | `sudo journalctl -u sddm`                        |
 | Kernel and hardware             | `dmesg`, `journalctl -k`                         |
@@ -143,9 +143,9 @@ still works when the local install is broken.
 ryoku recovery
 ```
 
-## The shell or pill is not drawing
+## The shell or bar is not drawing
 
-If the pill, sidebar, or other shell surfaces are missing:
+If the bar, sidebar, or other shell surfaces are missing:
 
 ```bash
 ryoku reload
