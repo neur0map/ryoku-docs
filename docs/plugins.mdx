@@ -252,6 +252,87 @@ The full authoring guide, the manifest schema, the three densities (`glyph`,
 - [`docs/plugins.md`](https://github.com/neur0map/ryoku-arch/blob/main/docs/plugins.md) in `ryoku-arch`, the canonical guide.
 - [`plugins/AUTHORING.md`](https://github.com/neur0map/ryoku-extras/blob/main/plugins/AUTHORING.md) in `ryoku-extras`, alongside a `template/` plugin to copy.
 
+## Make one
+
+You do not start from a blank folder. One command scaffolds a complete, working
+plugin in the right place:
+
+```bash
+ryoku plugin new my-widget --bar
+```
+
+That writes `~/Documents/ryoku-plugins/my-widget/` with a template you can run
+as is: the manifest, the logic, the view, a bar panel, a README, a LICENSE, and
+a first git commit. `--bar` makes a bar widget (the default); `--desktop` or
+`--popout` start a desktop tile or a frame popout instead.
+
+<Steps>
+  <Step title="Scaffold it">
+    `ryoku plugin new <id>` creates the folder and fills it with a template that
+    already validates and runs.
+  </Step>
+  <Step title="Edit it">
+    Change the logic, the view, and (for a bar widget) the panel; write the
+    README; drop in a real preview image. The template shows where each piece
+    goes.
+  </Step>
+  <Step title="Check it">
+    `ryoku plugin validate <dir>` runs the safety checks and tells you, line by
+    line, anything to fix.
+  </Step>
+  <Step title="Install it">
+    `ryoku plugin add <dir> --bar --yes` puts it on your bar. The shell picks it
+    up within seconds, no restart.
+  </Step>
+  <Step title="Verify and (only then) share">
+    Find it on the bar and under **QS Bar Settings > Community**. When you want
+    to publish it, and only then, `ryoku plugin share <id>` opens the Ryostore
+    pull request.
+  </Step>
+</Steps>
+
+## The rules
+
+A plugin runs inside your shell with your permissions, so a good one plays by a
+few plain rules. `ryoku plugin validate` checks the ones it can, and Ryostore
+runs the same check on anything submitted:
+
+- **Stay in your folder.** A plugin is one folder named after its id; it never
+  writes into the shell's own config or the store's install folder.
+- **Ship the standard pieces.** A manifest, the logic, one view, an optional bar
+  panel, a README, a LICENSE, and a real preview image. Scripts live in `bin/`.
+- **Import only the kit.** Views use Ryoku's PluginKit and Qt, never the shell's
+  private internals, so a shell update never breaks them.
+- **Settings go through the manifest.** You declare them; the shell draws and
+  saves them. A plugin never edits the shell's settings files by hand.
+- **Be honest about programs.** Every command a plugin runs is shipped with it or
+  listed in the manifest. No `sudo`; anything that needs a password uses the
+  system prompt (`pkexec`), only on a click you make, and says so in the README.
+- **Be honest about the network.** Every server a plugin talks to is listed in
+  the manifest. Nothing downloads and runs more code.
+- **Write only your own scratch space.** A plugin writes to its own state and
+  cache folders, never to your `~/.ssh`, your system files, or another plugin.
+- **No hidden code.** No secrets in the files, no compiled binaries, no symlinks;
+  just readable scripts and QML.
+- **Tell the truth.** A community plugin is marked community, names its author,
+  and its README says what it runs, reads, writes, and asks for.
+
+The full rule list, with the exact wording the validator uses, is in the
+[authoring guide](https://github.com/neur0map/ryoku-arch/blob/main/docs/plugins.md).
+
+## A bar panel
+
+A bar widget is more than a mark. Its glyph on the bar shows a glance of state;
+click it and a **panel** opens beneath it, in the same surface the shell's own
+panels use, closing on `Escape` or an outside click. The widget declares one
+extra view and a width, and Ryoku draws and sizes the panel for it, capped to
+your screen. Clicking the bar only ever *opens* the panel; it never changes
+anything on its own. The actions live inside the panel, behind buttons you press.
+
+The VPN plugin in Ryostore is the worked example: its glyph shows whether a VPN
+is up, and its panel holds the switch, the connection details, and an AUTHORISE
+button that asks for your password once.
+
 ## See also
 
 <CardGroup cols={2}>
