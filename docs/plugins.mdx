@@ -17,10 +17,10 @@ because the shell draws the surface around it.
   separate system.
 </Note>
 
-## The two hosts
+## The three hosts
 
 When you enable a plugin you pick **one** host for it. The same widget can run in
-either; Ryoku just renders it differently.
+any of them; Ryoku just renders it differently.
 
 <Tabs>
   <Tab title="Desktop widget">
@@ -48,11 +48,23 @@ either; Ryoku just renders it differently.
     - Toggle it open from a key with `ryoku-shell plugin <id>` (bind it in
       [Customize](/docs/customize)).
   </Tab>
+  <Tab title="Bar glyph">
+    A mark on the [QS Bar](/docs/tour), sitting in the row of widgets beside the
+    clock, tray, and workspaces, and treated like one of them:
+
+    - It renders at the bar's **glyph** density, sized and styled to the bar.
+    - **Move or hide it** like any built-in widget: it appears in the bar's
+      add-widget picker (Bar Studio, in [Customize](/docs/customize)).
+    - Ryoku places and draws it; you supply the mark and the view it opens.
+
+    A plugin can take this host when its `manifest.json` lists `topbarGlyph`
+    among its `hosts`.
+  </Tab>
 </Tabs>
 
 <Note>
-  Island, top-bar glyph, and window hosts are planned but not built yet. Today a
-  plugin declares `desktopWidget`, `framePopout`, or both.
+  Island and window hosts are planned but not built yet. Today a plugin declares
+  `desktopWidget`, `framePopout`, `topbarGlyph`, or a mix.
 </Note>
 
 ## Install, enable, place
@@ -78,6 +90,81 @@ Placement and settings persist to `~/.config/ryoku/plugins.json`. The shell
 watches that file and retunes every surface **live**, no reload, no restart.
 Removing a plugin (from **Installed**) deletes its files but keeps your
 placement, so reinstalling drops it back where you had it.
+
+## Bar widgets from the community
+
+The catalogue's official plugins are only half the picture. Anyone can write a
+bar widget and share it, and the ones you add yourself live in **QS Bar Settings
+> Community**. Open that panel from the bar's logo, from `Mod + Escape` then
+**QS Bar**, or with:
+
+```bash
+ryoku-shell bar settings community
+```
+
+Community lists each plugin you added, with its author, a switch, its own
+settings, and **EXPORT**, **SHARE TO RYOSTORE**, and **REMOVE** buttons. It opens
+on a warning that applies to all of them:
+
+<Warning>
+  Community plugin. Ryoku does not review or maintain it: it runs inside your
+  shell with your permissions, so inspect its code before you trust it.
+</Warning>
+
+To add one, paste a git URL or a local folder into the panel's **ADD** field, or
+run:
+
+```bash
+ryoku plugin add <git-url|dir> --bar
+```
+
+Either way Ryoku validates the plugin, installs it through the Store's
+transaction (a receipt and a content-hashed copy), places it on the bar, and the
+shell picks it up within seconds, no restart. Remove it with the **REMOVE**
+button or:
+
+```bash
+ryoku plugin remove <id>
+```
+
+## Share a widget you made
+
+Made something worth passing on? Turn an installed plugin into a shareable folder
+with:
+
+```bash
+ryoku plugin export <id>
+```
+
+That writes `~/Documents/ryoku-plugins/<id>/` (or `~/ryoku-plugins/<id>` if you
+have no Documents directory) and puts it under git. Inside are the plugin's files
+plus two Ryostore descriptors: `product-manifest.json` (the per-file checksums
+the Store verifies against) and `registry-entry.json` (the catalogue entry,
+marked `official: false`).
+
+When you are ready to publish, run:
+
+```bash
+ryoku plugin share <id>
+```
+
+With the GitHub CLI (`gh`) logged in this opens a pull request against Ryostore;
+without it, it opens the submission form prefilled. A maintainer then reviews the
+entry before it appears in the catalogue.
+
+<Note>
+  Ryostore review is a **listing** review, whether the entry belongs in the
+  catalogue and is described honestly, **not** a security audit. Nobody vets the
+  code for you, which is why every community plugin keeps the warning above. Read
+  the source before you install one.
+</Note>
+
+## Ask Rashin for one
+
+You do not have to write a widget by hand. If [Rashin](/docs/rashin) is on,
+describe the bar widget you want and its agent builds it, installs it with
+`ryoku plugin add`, and drops it into **Community** for you to review. See
+[Asking for a widget](/docs/rashin#asking-for-a-widget).
 
 ## Example plugins
 
@@ -121,6 +208,26 @@ ryoku-plugins-place market desktopWidget 120 80      # x y [scale] [locked]
 # For a frame-popout plugin: set the edge and alignment, then toggle it open.
 ryoku-plugins-place <id> framePopout top end         # edge align [hoverW] [hoverH]
 ryoku-shell plugin <id>
+```
+
+Community bar widgets have their own command family, `ryoku plugin`:
+
+```bash
+# Install from a git URL or a local folder, and place it on the bar.
+ryoku plugin add <git-url|dir> --bar
+
+# List installed plugins with their host and enabled state.
+ryoku plugin list
+
+# Check a local plugin tree before you install it.
+ryoku plugin validate <dir>
+
+# Export an installed plugin to a Ryostore folder, then open a PR (or the form).
+ryoku plugin export <id>
+ryoku plugin share <id>
+
+# Uninstall a plugin and drop its placement.
+ryoku plugin remove <id>
 ```
 
 ## Write your own

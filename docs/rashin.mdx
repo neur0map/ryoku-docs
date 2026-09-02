@@ -117,6 +117,33 @@ Both lanes write to one shared history, so an ask started in the launcher can be
 continued in the dashboard, and `\resume` in the launcher and `rashin --resume`
 in the terminal see the same conversation.
 
+## Asking for a widget
+
+Rashin's agent knows the bar, so you can describe a bar widget in plain words
+instead of writing one. Ask from the dashboard's **Chat**, the `\` launcher, or
+`ryoku-rashin chat "..."`; all reach Hermes with the `ryoku` skill wired in. What
+it does depends on what you ask:
+
+| You say | What Rashin does |
+|---|---|
+| "Make me a VPN widget for my bar that shows whether my VPN is up and lets me toggle it" | Writes a plugin folder (manifest, service, and view) and installs it with `ryoku plugin add <dir> --bar`. |
+| "Move the clock to the right of the bar" | Runs `ryoku-shell bar ...` to rearrange the widgets already on the bar. |
+| "Hide the memory widget and show GPU instead" | Runs `ryoku-shell bar ...` to toggle which built-in widgets show. |
+
+A widget it builds lands in **QS Bar Settings > Community**, the same place a
+hand-installed one does (see [Bar widgets from the
+community](/docs/plugins#bar-widgets-from-the-community)). It runs with your
+permissions, so read the code, tweak it, and only then [share
+it](/docs/plugins#share-a-widget-you-made). Rearrangements take effect on the bar
+right away.
+
+<Note>
+To build against the real desktop, the agent reads its `ryoku` skill — `bar.md`
+for the QS Bar and `plugins.md`, the widget contract — and the vault's
+[`desktop.md`](#the-vault), so it knows the host to target and where the bar's
+config lives.
+</Note>
+
 ## Privacy
 
 Rashin is built to keep everything local:
